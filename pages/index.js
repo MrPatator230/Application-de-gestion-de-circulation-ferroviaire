@@ -62,6 +62,11 @@ export default function Home() {
                 </Link>
               </li>
               <li className="nav-item">
+                <Link href="/abonnements-et-billets" legacyBehavior>
+                  <a className="nav-link">Abonnements et Billets</a>
+                </Link>
+              </li>
+              <li className="nav-item">
                 <Link href="/login" legacyBehavior>
                   <a className="btn btn-outline-success ms-3">Se connecter</a>
                 </Link>

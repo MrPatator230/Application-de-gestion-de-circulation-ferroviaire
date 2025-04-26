@@ -2,9 +2,8 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/admin/actualites": "pages/admin/actualites.js",
-  "/actualites": "pages/actualites.js",
-  "/": "pages/index.js",
+  "/abonnements-et-billets": "pages/abonnements-et-billets.js",
+  "/client": "pages/client.js",
   "/login": "pages/login.js",
   "/admin": "pages/admin.js"
 }
