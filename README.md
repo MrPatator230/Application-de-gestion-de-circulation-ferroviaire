@@ -18,16 +18,16 @@ Des tutos sont disponibles entre parenthèses pour pouvoir l'installer (pour les
 
 Une fois les prérequis installés, télécharger le git : 
 
-    git clone https://github.com/MrPatator230/Systeme-de-gestion-de-trains.git
+    git clone https://github.com/MrPatator230/Application-de-gestion-de-circulation-ferroviaire.git
 
 [OPTIONNEL] Renommez le dossier : 
 
-    mv Systeme-de-gestion-de-trains (nom que vous voulez)
+    mv Application-de-gestion-de-circulation-ferroviaire (nom que vous voulez)
 
 Puis ensuite ce diriger sur le dossier : 
 
     cd [nom de votre dossier ]
-    cd Systeme-de-gestion-de-trains
+    cd Application-de-gestion-de-circulation-ferroviaire
 
 En étant dans le dossier, on fait : 
 
