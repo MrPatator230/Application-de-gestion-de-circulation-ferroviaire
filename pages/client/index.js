@@ -54,7 +54,18 @@ export default function Client() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       {/* Sidebar */}
-      <nav style={{ width: '250px', backgroundColor: '#007bff', color: 'white', padding: '1rem', display: 'flex', flexDirection: 'column' }}>
+      <nav
+        style={{
+          width: '250px',
+          backgroundColor: '#007bff',
+          color: 'white',
+          padding: '1rem',
+          display: 'flex',
+          flexDirection: 'column',
+          overflowY: 'auto',
+          maxHeight: '100vh',
+        }}
+      >
         <h3>Espace Client</h3>
         <ul style={{ listStyle: 'none', padding: 0, flexGrow: 1 }}>
           <li style={{ marginBottom: '1rem' }}>

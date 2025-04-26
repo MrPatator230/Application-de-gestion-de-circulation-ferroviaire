@@ -2,8 +2,8 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/abonnements-et-billets": "pages/abonnements-et-billets.js",
-  "/client": "pages/client.js",
-  "/login": "pages/login.js",
-  "/admin": "pages/admin.js"
+  "/admin/entreprise": "pages/admin/entreprise.js",
+  "/admin/update": "pages/admin/update.js",
+  "/admin/materiels-roulants": "pages/admin/materiels-roulants.js",
+  "/admin/horaires": "pages/admin/horaires.js"
 }

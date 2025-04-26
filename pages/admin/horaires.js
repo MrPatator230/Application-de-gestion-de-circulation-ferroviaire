@@ -19,6 +19,9 @@ export default function Horaires() {
   const router = useRouter();
 
   const [schedules, setSchedules] = useState([]);
+  const [folders, setFolders] = useState([]);
+  const [scheduleFolderMap, setScheduleFolderMap] = useState({}); // scheduleId -> folderId
+  const [selectedFolderId, setSelectedFolderId] = useState(null);
   const [stations, setStations] = useState([]);
   const [materielsRoulants, setMaterielsRoulants] = useState([]);
 
@@ -37,6 +40,7 @@ export default function Horaires() {
   const [rollingStockFileName, setRollingStockFileName] = useState('');
   const [servedStations, setServedStations] = useState([{ name: '', arrivalTime: '', departureTime: '' }]);
   const [joursCirculation, setJoursCirculation] = useState([]);
+  const [folderId, setFolderId] = useState(null);
 
   useEffect(() => {
     if (!isAuthenticated || role !== 'admin') {
@@ -45,7 +49,7 @@ export default function Horaires() {
   }, [isAuthenticated, role, router]);
 
   useEffect(() => {
-    // Load schedules, stations, and materiels roulants from localStorage
+    // Load schedules, stations, materiels roulants, folders, and schedule-folder map from localStorage
     const savedSchedules = localStorage.getItem('schedules');
     if (savedSchedules) {
       setSchedules(JSON.parse(savedSchedules));
@@ -58,11 +62,29 @@ export default function Horaires() {
     if (savedMateriels) {
       setMaterielsRoulants(JSON.parse(savedMateriels));
     }
+    const savedFolders = localStorage.getItem('scheduleFolders');
+    if (savedFolders) {
+      setFolders(JSON.parse(savedFolders));
+    }
+    const savedMap = localStorage.getItem('scheduleFolderMap');
+    if (savedMap) {
+      setScheduleFolderMap(JSON.parse(savedMap));
+    }
   }, []);
 
   const saveSchedules = (newSchedules) => {
     setSchedules(newSchedules);
     localStorage.setItem('schedules', JSON.stringify(newSchedules));
+  };
+
+  const saveFolders = (newFolders) => {
+    setFolders(newFolders);
+    localStorage.setItem('scheduleFolders', JSON.stringify(newFolders));
+  };
+
+  const saveScheduleFolderMap = (newMap) => {
+    setScheduleFolderMap(newMap);
+    localStorage.setItem('scheduleFolderMap', JSON.stringify(newMap));
   };
 
   const saveStations = (newStations) => {
@@ -74,9 +96,19 @@ export default function Horaires() {
     setShowModal(true);
   };
 
+  const handleCreateFolder = () => {
+    const folderName = prompt('Nom du nouveau dossier:');
+    if (folderName && folderName.trim() !== '') {
+      const newFolder = { id: Date.now(), name: folderName.trim() };
+      const newFolders = [...folders, newFolder];
+      saveFolders(newFolders);
+    }
+  };
+
   const handleModalClose = () => {
     setShowModal(false);
     setEditingSchedule(null);
+    setFolderId(null);
     // Reset form
     setTrainNumber('');
     setDepartureStation('');
@@ -190,93 +222,184 @@ export default function Horaires() {
       saveSchedules(newSchedules);
     }
 
+    // Update scheduleFolderMap with folderId for this schedule
+    if (folderId) {
+      const newMap = { ...scheduleFolderMap, [editingSchedule ? editingSchedule.id : newSchedules[newSchedules.length - 1].id]: folderId };
+      saveScheduleFolderMap(newMap);
+    }
+
     handleModalClose();
   };
 
+  // Drag and drop handlers
+  const onDragStart = (e, scheduleId) => {
+    e.dataTransfer.setData('scheduleId', scheduleId);
+  };
+
+  const onDrop = (e, folderId) => {
+    e.preventDefault();
+    const scheduleId = e.dataTransfer.getData('scheduleId');
+    if (!scheduleId) return;
+
+    const newMap = { ...scheduleFolderMap, [scheduleId]: folderId };
+    saveScheduleFolderMap(newMap);
+  };
+
+  const onDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  // Filter schedules by folder
+  const schedulesInFolder = (folderId) => {
+    return schedules.filter(s => scheduleFolderMap[s.id] === folderId);
+  };
+
+  // Filter schedules to display based on selectedFolderId
+  const displayedSchedules = selectedFolderId ? schedulesInFolder(selectedFolderId) : schedules;
+
   return (
     <div id="wrapper" style={{ display: 'flex', minHeight: '100vh' }}>
-      <Sidebar />
+      <div style={{ height: '100vh', overflowY: 'auto' }}>
+        <Sidebar />
+      </div>
       <div id="content-wrapper" className="d-flex flex-column flex-grow-1">
         <div id="content" className="container mt-4 flex-grow-1">
           <h1>Gestion des horaires de trains</h1>
-          <button className="btn btn-primary mb-3" onClick={handleCreateSchedule}>
-            Créer un horaire
-          </button>
+          <div className="d-flex mb-3">
+            <button className="btn btn-primary me-3" onClick={handleCreateSchedule}>
+              Créer un horaire
+            </button>
+            <button className="btn btn-secondary" onClick={handleCreateFolder}>
+              Créer un dossier
+            </button>
+          </div>
 
-          <table className="table table-striped">
-            <thead>
-              <tr>
-                <th>Numéro du Train</th>
-                <th>Gare de Provenance</th>
-                <th>Gare de Destination</th>
-                <th>Heure d'Arrivée</th>
-                <th>Heure de Départ</th>
-                <th>Type de Train</th>
-                <th>Matériel Roulant</th>
-                <th>Jours de Circulation</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {schedules.length === 0 ? (
-                <tr>
-                  <td colSpan="9" className="text-center">Aucun horaire créé</td>
-                </tr>
+          <div className="d-flex">
+            <div style={{ width: '250px', marginRight: '1rem', maxHeight: '80vh', overflowY: 'auto', border: '1px solid #ccc', padding: '0.5rem' }}>
+              <h5>Dossiers</h5>
+              {folders.length === 0 ? (
+                <p>Aucun dossier créé</p>
               ) : (
-                schedules.map(schedule => (
-                  <tr key={schedule.id} style={{ cursor: 'pointer' }} onClick={() => { setSelectedSchedule(schedule); setShowDetailsModal(true); }}>
-                    <td>{schedule.trainNumber}</td>
-                    <td>{schedule.departureStation}</td>
-                    <td>{schedule.arrivalStation}</td>
-                    <td>{schedule.arrivalTime}</td>
-                    <td>{schedule.departureTime}</td>
-                    <td>{schedule.trainType}</td>
-                    <td>{schedule.rollingStockFileName || 'N/A'}</td>
-                    <td>{schedule.joursCirculation ? schedule.joursCirculation.join(', ') : '-'}</td>
-                    <td>
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-warning me-2"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingSchedule(schedule);
-                          setTrainNumber(schedule.trainNumber);
-                          setDepartureStation(schedule.departureStation);
-                          setArrivalStation(schedule.arrivalStation);
-                          setArrivalTime(schedule.arrivalTime);
-                          setDepartureTime(schedule.departureTime);
-                          setTrainType(schedule.trainType);
-                          setRollingStockFileName(schedule.rollingStockFileName || '');
-                          setServedStations(schedule.servedStations.length > 0 ? schedule.servedStations : [{ name: '', arrivalTime: '', departureTime: '' }]);
-                          setJoursCirculation(schedule.joursCirculation || []);
-                          setShowModal(true);
-                        }}
-                      >
-                        Modifier
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-danger"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (confirm('Êtes-vous sûr de vouloir supprimer cet horaire ?')) {
-                            const newSchedules = schedules.filter(s => s.id !== schedule.id);
-                            saveSchedules(newSchedules);
-                            if (selectedSchedule && selectedSchedule.id === schedule.id) {
-                              setSelectedSchedule(null);
-                              setShowDetailsModal(false);
-                            }
-                          }
-                        }}
-                      >
-                        Supprimer
-                      </button>
-                    </td>
-                  </tr>
+                folders.map(folder => (
+                  <div
+                    key={folder.id}
+                    onClick={() => setSelectedFolderId(folder.id)}
+                    onDrop={(e) => onDrop(e, folder.id)}
+                    onDragOver={onDragOver}
+                    style={{
+                      padding: '0.5rem',
+                      marginBottom: '0.5rem',
+                      border: selectedFolderId === folder.id ? '2px solid #0056b3' : '1px solid #007bff',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      backgroundColor: selectedFolderId === folder.id ? '#cce5ff' : 'transparent',
+                    }}
+                  >
+                    <strong>{folder.name}</strong>
+                    <div style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                      {schedulesInFolder(folder.id).length} horaires
+                    </div>
+                  </div>
                 ))
               )}
-            </tbody>
-          </table>
+              {selectedFolderId && (
+                <button className="btn btn-link mt-2" onClick={() => setSelectedFolderId(null)}>
+                  Afficher tous les horaires
+                </button>
+              )}
+            </div>
+
+            <div style={{ flexGrow: 1, maxHeight: '80vh', overflowY: 'auto', border: '1px solid #ccc', padding: '0.5rem' }}>
+              <h5>Horaires</h5>
+              <table className="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Numéro du Train</th>
+                    <th>Gare de Provenance</th>
+                    <th>Gare de Destination</th>
+                    <th>Heure d'Arrivée</th>
+                    <th>Heure de Départ</th>
+                    <th>Type de Train</th>
+                    <th>Matériel Roulant</th>
+                    <th>Jours de Circulation</th>
+                    <th>Dossier</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayedSchedules.length === 0 ? (
+                    <tr>
+                      <td colSpan="10" className="text-center">Aucun horaire créé</td>
+                    </tr>
+                  ) : (
+                    displayedSchedules.map(schedule => (
+                      <tr
+                        key={schedule.id}
+                        draggable
+                        onDragStart={(e) => onDragStart(e, schedule.id.toString())}
+                        style={{ cursor: 'grab' }}
+                        onClick={() => { setSelectedSchedule(schedule); setShowDetailsModal(true); }}
+                      >
+                        <td>{schedule.trainNumber}</td>
+                        <td>{schedule.departureStation}</td>
+                        <td>{schedule.arrivalStation}</td>
+                        <td>{schedule.arrivalTime}</td>
+                        <td>{schedule.departureTime}</td>
+                        <td>{schedule.trainType}</td>
+                        <td>{schedule.rollingStockFileName || 'N/A'}</td>
+                        <td>{schedule.joursCirculation ? schedule.joursCirculation.join(', ') : '-'}</td>
+                        <td>{folders.find(f => f.id === scheduleFolderMap[schedule.id])?.name || '-'}</td>
+                        <td>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-warning me-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingSchedule(schedule);
+                              setTrainNumber(schedule.trainNumber);
+                              setDepartureStation(schedule.departureStation);
+                              setArrivalStation(schedule.arrivalStation);
+                              setArrivalTime(schedule.arrivalTime);
+                              setDepartureTime(schedule.departureTime);
+                              setTrainType(schedule.trainType);
+                              setRollingStockFileName(schedule.rollingStockFileName || '');
+                              setServedStations(schedule.servedStations.length > 0 ? schedule.servedStations : [{ name: '', arrivalTime: '', departureTime: '' }]);
+                              setJoursCirculation(schedule.joursCirculation || []);
+                              setFolderId(scheduleFolderMap[schedule.id] || null);
+                              setShowModal(true);
+                            }}
+                          >
+                            Modifier
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-danger"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm('Êtes-vous sûr de vouloir supprimer cet horaire ?')) {
+                                const newSchedules = schedules.filter(s => s.id !== schedule.id);
+                                saveSchedules(newSchedules);
+                                if (selectedSchedule && selectedSchedule.id === schedule.id) {
+                                  setSelectedSchedule(null);
+                                  setShowDetailsModal(false);
+                                }
+                                // Remove from folder map
+                                const newMap = { ...scheduleFolderMap };
+                                delete newMap[schedule.id];
+                                saveScheduleFolderMap(newMap);
+                              }
+                            }}
+                          >
+                            Supprimer
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
           {showModal && (
             <div className="modal d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
@@ -354,6 +477,20 @@ export default function Horaires() {
                         >
                           {TRAIN_TYPES.map(type => (
                             <option key={type} value={type}>{type}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="mb-3">
+                        <label htmlFor="folderSelect" className="form-label">Dossier</label>
+                        <select
+                          id="folderSelect"
+                          className="form-select"
+                          value={folderId || ''}
+                          onChange={(e) => setFolderId(e.target.value ? Number(e.target.value) : null)}
+                        >
+                          <option value="">-- Aucun --</option>
+                          {folders.map(folder => (
+                            <option key={folder.id} value={folder.id}>{folder.name}</option>
                           ))}
                         </select>
                       </div>

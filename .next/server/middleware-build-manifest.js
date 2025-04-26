@@ -20,25 +20,20 @@ globalThis.__BUILD_MANIFEST = {
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
-    "/abonnements-et-billets": [
+    "/admin/horaires": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/abonnements-et-billets.js"
+      "static/chunks/pages/admin/horaires.js"
     ],
-    "/admin": [
+    "/admin/materiels-roulants": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/admin.js"
+      "static/chunks/pages/admin/materiels-roulants.js"
     ],
-    "/client": [
+    "/admin/update": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/client.js"
-    ],
-    "/login": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/login.js"
+      "static/chunks/pages/admin/update.js"
     ]
   },
   "ampFirstPages": []
