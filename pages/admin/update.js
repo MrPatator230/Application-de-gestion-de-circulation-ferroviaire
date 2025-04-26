@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 
-// Updated GitHub API URL with your username and repo name
 const GITHUB_REPO_API = 'https://api.github.com/repos/MrPatator230/Systeme-de-gestion-de-trains/releases';
 
 export default function Update() {
-  const [currentVersion, setCurrentVersion] = useState('1.0.0'); // You can replace with actual version if available
+  const [currentVersion, setCurrentVersion] = useState('1.0.0');
   const [latestVersion, setLatestVersion] = useState(null);
   const [releaseNotes, setReleaseNotes] = useState('');
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [updating, setUpdating] = useState(false);
+  const [updateResult, setUpdateResult] = useState('');
 
   useEffect(() => {
     fetchLatestRelease();
@@ -37,8 +38,25 @@ export default function Update() {
     }
   };
 
-  const handleUpdate = () => {
-    alert('La mise à jour automatique n\'est pas encore implémentée. Veuillez mettre à jour manuellement depuis le dépôt GitHub.');
+  const handleUpdate = async () => {
+    setUpdating(true);
+    setError('');
+    setUpdateResult('');
+    try {
+      const response = await fetch('/api/update', { method: 'POST' });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erreur lors de la mise à jour.');
+      }
+      const data = await response.json();
+      setUpdateResult(data.output || 'Mise à jour réussie.');
+      setUpdateAvailable(false);
+      setCurrentVersion(latestVersion);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUpdating(false);
+    }
   };
 
   return (
@@ -59,9 +77,14 @@ export default function Update() {
                   <pre style={{ whiteSpace: 'pre-wrap', backgroundColor: '#f8f9fa', padding: '1rem', borderRadius: '0.25rem' }}>
                     {releaseNotes}
                   </pre>
-                  <button className="btn btn-primary mt-3" onClick={handleUpdate}>
-                    Mettre à jour maintenant
+                  <button className="btn btn-primary mt-3" onClick={handleUpdate} disabled={updating}>
+                    {updating ? 'Mise à jour en cours...' : 'Mettre à jour maintenant'}
                   </button>
+                  {updateResult && (
+                    <pre className="mt-3" style={{ whiteSpace: 'pre-wrap', backgroundColor: '#e9ecef', padding: '1rem', borderRadius: '0.25rem' }}>
+                      {updateResult}
+                    </pre>
+                  )}
                 </>
               ) : (
                 <p>L'application est à jour.</p>
