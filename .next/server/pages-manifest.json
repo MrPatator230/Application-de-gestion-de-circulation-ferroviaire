@@ -2,8 +2,8 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/afficheur": "pages/afficheur.js",
-  "/admin/update": "pages/admin/update.js",
-  "/admin/sauvegarde": "pages/admin/sauvegarde.js",
-  "/api/settings": "pages/api/settings.js"
+  "/actualites": "pages/actualites.js",
+  "/admin/actualites": "pages/admin/actualites.js",
+  "/api/settings": "pages/api/settings.js",
+  "/": "pages/index.js"
 }

@@ -88,6 +88,12 @@ export default function Sidebar() {
           <span>Mise à jour</span>
         </Link>
       </li>
+      <li className={`nav-item ${currentPath === '/admin/actualites' ? 'active' : ''}`}>
+        <Link href="/admin/actualites" className="nav-link">
+          <i className="fas fa-fw fa-newspaper"></i>
+          <span>Actualités</span>
+        </Link>
+      </li>
       <hr className="sidebar-divider mt-auto" />
       <li className="nav-item">
         <a href="#" onClick={handleLogout} className="nav-link">

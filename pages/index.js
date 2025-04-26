@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 const impactTypeColors = {
   Retard: 'bg-warning text-dark',
@@ -10,13 +10,20 @@ const impactTypeColors = {
 
 export default function Home() {
   const [trafficInfos, setTrafficInfos] = useState([]);
+  const [newsPosts, setNewsPosts] = useState([]);
 
   useEffect(() => {
     const savedTrafficInfos = localStorage.getItem('trafficInfos');
     if (savedTrafficInfos) {
       setTrafficInfos(JSON.parse(savedTrafficInfos));
     }
+    const savedNews = localStorage.getItem('newsPosts');
+    if (savedNews) {
+      setNewsPosts(JSON.parse(savedNews));
+    }
   }, []);
+
+  const recentNews = newsPosts.slice(0, 3);
 
   return (
     <>
@@ -45,6 +52,9 @@ export default function Home() {
                 <Link href="/horaires-par-gares" legacyBehavior>
                   <a className="nav-link">Horaires</a>
                 </Link>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link" href="/actualites">Actualités</a>
               </li>
               <li className="nav-item">
                 <Link href="/prochains-departs" legacyBehavior>
@@ -87,6 +97,30 @@ export default function Home() {
               ))}
             </div>
           )}
+        </section>
+
+        <section className="mt-5">
+          <h2>Dernières actualités</h2>
+          {recentNews.length === 0 ? (
+            <p>Aucune actualité disponible.</p>
+          ) : (
+            <div className="list-group">
+              {recentNews.map(post => (
+                <Link key={post.id} href={`/actualites/${post.id}`} legacyBehavior>
+                  <a className="list-group-item list-group-item-action">
+                    <h5>{post.title}</h5>
+                    <small className="text-muted">{new Date(post.date).toLocaleDateString()}</small>
+                    <p>{post.content.length > 100 ? post.content.substring(0, 100) + '...' : post.content}</p>
+                  </a>
+                </Link>
+              ))}
+            </div>
+          )}
+          <div className="mt-3">
+            <Link href="/actualites" legacyBehavior>
+              <a>Voir toutes les actualités</a>
+            </Link>
+          </div>
         </section>
       </main>
     </>
