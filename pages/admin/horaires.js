@@ -220,12 +220,12 @@ export default function Horaires() {
       };
       const newSchedules = [...schedules, newSchedule];
       saveSchedules(newSchedules);
-    }
 
-    // Update scheduleFolderMap with folderId for this schedule
-    if (folderId) {
-      const newMap = { ...scheduleFolderMap, [editingSchedule ? editingSchedule.id : newSchedules[newSchedules.length - 1].id]: folderId };
-      saveScheduleFolderMap(newMap);
+      // Update scheduleFolderMap with folderId for this schedule
+      if (folderId) {
+        const newMap = { ...scheduleFolderMap, [newSchedule.id]: folderId };
+        saveScheduleFolderMap(newMap);
+      }
     }
 
     handleModalClose();
@@ -317,7 +317,6 @@ export default function Horaires() {
                     <th>Numéro du Train</th>
                     <th>Gare de Provenance</th>
                     <th>Gare de Destination</th>
-                    <th>Heure d'Arrivée</th>
                     <th>Heure de Départ</th>
                     <th>Type de Train</th>
                     <th>Matériel Roulant</th>
@@ -329,7 +328,7 @@ export default function Horaires() {
                 <tbody>
                   {displayedSchedules.length === 0 ? (
                     <tr>
-                      <td colSpan="10" className="text-center">Aucun horaire créé</td>
+                      <td colSpan="9" className="text-center">Aucun horaire créé</td>
                     </tr>
                   ) : (
                     displayedSchedules.map(schedule => (
@@ -343,7 +342,6 @@ export default function Horaires() {
                         <td>{schedule.trainNumber}</td>
                         <td>{schedule.departureStation}</td>
                         <td>{schedule.arrivalStation}</td>
-                        <td>{schedule.arrivalTime}</td>
                         <td>{schedule.departureTime}</td>
                         <td>{schedule.trainType}</td>
                         <td>{schedule.rollingStockFileName || 'N/A'}</td>

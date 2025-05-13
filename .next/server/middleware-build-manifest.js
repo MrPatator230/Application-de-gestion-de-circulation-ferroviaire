@@ -20,20 +20,10 @@ globalThis.__BUILD_MANIFEST = {
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
-    "/admin/horaires": [
+    "/admin/banque-de-sons": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/admin/horaires.js"
-    ],
-    "/admin/materiels-roulants": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/admin/materiels-roulants.js"
-    ],
-    "/admin/update": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/admin/update.js"
+      "static/chunks/pages/admin/banque-de-sons.js"
     ]
   },
   "ampFirstPages": []

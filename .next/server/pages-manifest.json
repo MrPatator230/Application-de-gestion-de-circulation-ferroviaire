@@ -2,8 +2,8 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/admin/entreprise": "pages/admin/entreprise.js",
-  "/admin/update": "pages/admin/update.js",
-  "/admin/materiels-roulants": "pages/admin/materiels-roulants.js",
-  "/admin/horaires": "pages/admin/horaires.js"
+  "/admin/banque-de-sons": "pages/admin/banque-de-sons.js",
+  "/api/audio-files": "pages/api/audio-files.js",
+  "/api/settings": "pages/api/settings.js",
+  "/api/upload-audio": "pages/api/upload-audio.js"
 }

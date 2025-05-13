@@ -7,6 +7,8 @@ export default function Admin() {
   const { isAuthenticated } = useContext(AuthContext);
   const router = useRouter();
   const [stationCount, setStationCount] = useState(0);
+  const [scheduleCount, setScheduleCount] = useState(0);
+  const [onTimeRatio, setOnTimeRatio] = useState(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -44,11 +46,27 @@ export default function Admin() {
       const stations = JSON.parse(savedStations);
       setStationCount(stations.length);
     }
+
+    const savedSchedules = localStorage.getItem('schedules');
+    if (savedSchedules) {
+      const schedules = JSON.parse(savedSchedules);
+      setScheduleCount(schedules.length);
+
+      // Since no delay data, assume all schedules are on time
+      setOnTimeRatio(100);
+    } else {
+      setScheduleCount(0);
+      setOnTimeRatio(null);
+    }
   }, []);
 
   if (!isAuthenticated) {
     return null; // or a loading spinner
   }
+
+  const handleAnnouncementRedirect = () => {
+    router.push('/admin/banque-de-sons');
+  };
 
   return (
     <>
@@ -69,8 +87,9 @@ export default function Admin() {
 
             {/* Begin Page Content */}
             <div className="container-fluid">
-              {/* Station Count Widget */}
+              {/* Widgets Row */}
               <div className="row">
+                {/* Station Count Widget */}
                 <div className="col-xl-3 col-md-6 mb-4">
                   <div className="card border-left-primary shadow h-100 py-2">
                     <div className="card-body">
@@ -88,8 +107,73 @@ export default function Admin() {
                     </div>
                   </div>
                 </div>
+
+                {/* Schedule Count Widget */}
+                <div className="col-xl-3 col-md-6 mb-4">
+                  <div className="card border-left-success shadow h-100 py-2">
+                    <div className="card-body">
+                      <div className="row no-gutters align-items-center">
+                        <div className="col mr-2">
+                          <div className="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Nombre d'horaires créés
+                          </div>
+                          <div className="h5 mb-0 font-weight-bold text-gray-800">{scheduleCount}</div>
+                        </div>
+                        <div className="col-auto">
+                          <i className="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* On Time Ratio Widget */}
+                <div className="col-xl-3 col-md-6 mb-4">
+                  <div className="card border-left-info shadow h-100 py-2">
+                    <div className="card-body">
+                      <div className="row no-gutters align-items-center">
+                        <div className="col mr-2">
+                          <div className="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Ratio d'horaires à l'heure (%)
+                          </div>
+                          <div className="h5 mb-0 font-weight-bold text-gray-800">
+                            {onTimeRatio !== null ? `${onTimeRatio}%` : 'N/A'}
+                          </div>
+                        </div>
+                        <div className="col-auto">
+                          <i className="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Announcement System Redirect Widget */}
+                <div className="col-xl-3 col-md-6 mb-4">
+                  <div
+                    className="card border-left-warning shadow h-100 py-2"
+                    style={{ cursor: 'pointer' }}
+                    onClick={handleAnnouncementRedirect}
+                  >
+                    <div className="card-body">
+                      <div className="row no-gutters align-items-center">
+                        <div className="col mr-2">
+                          <div className="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Système d'annonces vocales
+                          </div>
+                          <div className="h5 mb-0 font-weight-bold text-gray-800">
+                            Accéder au système
+                          </div>
+                        </div>
+                        <div className="col-auto">
+                          <i className="fas fa-bullhorn fa-2x text-gray-300"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              {/* End Station Count Widget */}
+              {/* End Widgets Row */}
 
               <h2>Bienvenue dans l'espace admin</h2>
               <p>Utilisez le menu latéral pour naviguer.</p>

@@ -222,7 +222,7 @@ export default function MaterielsRoulants() {
                       id="imageFile"
                       className="form-control"
                       accept="image/*"
-                      onChange={(e) => setImageFile(e.target.files[0])}
+                      onChange={handleFileChange}
                       {...(editingMaterielId === null ? { required: true } : {})}
                     />
                   </div>
