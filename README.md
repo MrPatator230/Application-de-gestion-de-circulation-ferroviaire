@@ -58,7 +58,11 @@ Enfin, l'url du projet s'affiche sur votre CLI.
 
 - Aller sur http://localhost:3000
 
+## CONNEXION A L'ESPACE ADMIN  :
 
+- username : admin
+- Password : admin
+  
 ## CONTACTS :
 
 **En cas de problèmes dans l'installation du logiciel, écrire dans le canal Issues**
