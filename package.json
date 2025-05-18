@@ -8,7 +8,8 @@
     "start": "next start"
   },
   "dependencies": {
-    "bootstrap": "^5.3.5",
+    "@sncf/bootstrap-sncf.metier": "^4.3.1-r5",
+    "bootstrap": "^5.3.6",
     "mdb-react-ui-kit": "^9.0.0",
     "multer": "^1.4.5-lts.2",
     "next": "latest",

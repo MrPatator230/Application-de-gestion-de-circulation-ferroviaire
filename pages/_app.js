@@ -1,30 +1,17 @@
-import 'mdb-react-ui-kit/dist/css/mdb.min.css';
+// Import styles
+import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/globals.css';
-import { createContext, useState, useEffect, useContext } from 'react';
+
+// Import dependencies
+import { createContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { SettingsProvider, SettingsContext } from '../contexts/SettingsContext';
+import { SettingsProvider } from '../contexts/SettingsContext';
 
 export const AuthContext = createContext();
 
 function AppWrapper({ children }) {
-  const { primaryColor, secondaryColor, appName } = useContext(SettingsContext);
-
-  useEffect(() => {
-    document.title = appName;
-  }, [appName]);
-
-  return (
-    <>
-      <style jsx global>{`
-        :root {
-          --bs-primary: ${primaryColor};
-          --bs-secondary: ${secondaryColor};
-        }
-      `}</style>
-      {children}
-    </>
-  );
+  return children;
 }
 
 export default function MyApp({ Component, pageProps }) {
@@ -32,6 +19,44 @@ export default function MyApp({ Component, pageProps }) {
   const [role, setRole] = useState(null); // 'admin' or 'client'
   const router = useRouter();
 
+  // Load jQuery, Popper.js, and Bootstrap JS
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const loadScript = (src) => {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = src;
+          script.async = true;
+          script.onload = resolve;
+          script.onerror = reject;
+          document.body.appendChild(script);
+        });
+      };
+
+      const loadDependencies = async () => {
+        try {
+          await loadScript('https://code.jquery.com/jquery-3.6.0.min.js');
+          await loadScript('https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js');
+          await loadScript('https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js');
+        } catch (error) {
+          console.error('Error loading scripts:', error);
+        }
+      };
+
+      loadDependencies();
+
+      return () => {
+        const scripts = document.querySelectorAll('script');
+        scripts.forEach(script => {
+          if (script.src.includes('jquery') || script.src.includes('popper') || script.src.includes('bootstrap')) {
+            script.parentNode.removeChild(script);
+          }
+        });
+      };
+    }
+  }, []);
+
+  // Check authentication
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     const storedRole = localStorage.getItem('userRole');
@@ -94,16 +119,7 @@ export default function MyApp({ Component, pageProps }) {
 
   return (
     <>
-      <Head>
-        <link
-          href="https://cdn.jsdelivr.net/npm/startbootstrap-sb-admin-2@4.1.4/css/sb-admin-2.min.css"
-          rel="stylesheet"
-        />
-        <link
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
-          rel="stylesheet"
-        />
-      </Head>
+      <Head />
       <AuthContext.Provider value={{ isAuthenticated, role, login, logout, register }}>
         <SettingsProvider>
           <AppWrapper>

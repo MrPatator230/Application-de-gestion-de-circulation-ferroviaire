@@ -2,6 +2,10 @@ import { useEffect, useContext, useState } from 'react';
 import { useRouter } from 'next/router';
 import { AuthContext } from '../_app';
 import Sidebar from '../../components/Sidebar';
+import MobileMenuToggle from '../../components/MobileMenuToggle';
+import DashboardWidget from '../../components/admin/DashboardWidget';
+import RecentStats from '../../components/admin/RecentStats';
+import ActivityFeed from '../../components/admin/ActivityFeed';
 
 export default function Admin() {
   const { isAuthenticated } = useContext(AuthContext);
@@ -9,6 +13,7 @@ export default function Admin() {
   const [stationCount, setStationCount] = useState(0);
   const [scheduleCount, setScheduleCount] = useState(0);
   const [onTimeRatio, setOnTimeRatio] = useState(null);
+  const [activities, setActivities] = useState([]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -17,173 +22,145 @@ export default function Admin() {
   }, [isAuthenticated, router]);
 
   useEffect(() => {
-    // Load jQuery, Bootstrap Bundle, and SB Admin 2 JS from CDN
-    const jqueryScript = document.createElement('script');
-    jqueryScript.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
-    jqueryScript.async = true;
-    document.body.appendChild(jqueryScript);
-
-    const bootstrapScript = document.createElement('script');
-    bootstrapScript.src = 'https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js';
-    bootstrapScript.async = true;
-    document.body.appendChild(bootstrapScript);
-
-    const sbAdminScript = document.createElement('script');
-    sbAdminScript.src = 'https://cdn.jsdelivr.net/npm/startbootstrap-sb-admin-2@4.1.4/js/sb-admin-2.min.js';
-    sbAdminScript.async = true;
-    document.body.appendChild(sbAdminScript);
-
-    return () => {
-      document.body.removeChild(jqueryScript);
-      document.body.removeChild(bootstrapScript);
-      document.body.removeChild(sbAdminScript);
-    };
-  }, []);
-
-  useEffect(() => {
+    // Charger les données des stations
     const savedStations = localStorage.getItem('stations');
     if (savedStations) {
       const stations = JSON.parse(savedStations);
       setStationCount(stations.length);
     }
 
+    // Charger les données des horaires
     const savedSchedules = localStorage.getItem('schedules');
     if (savedSchedules) {
       const schedules = JSON.parse(savedSchedules);
       setScheduleCount(schedules.length);
-
-      // Since no delay data, assume all schedules are on time
-      setOnTimeRatio(100);
-    } else {
-      setScheduleCount(0);
-      setOnTimeRatio(null);
+      setOnTimeRatio(98);
     }
+
+    // Simuler des activités récentes
+    setActivities([
+      {
+        title: 'Nouvelle annonce créée',
+        time: 'Il y a 5 minutes',
+        icon: 'campaign',
+        color: 'primary',
+        description: 'Annonce de retard pour le TER 857412'
+      },
+      {
+        title: 'Horaire modifié',
+        time: 'Il y a 15 minutes',
+        icon: 'schedule',
+        color: 'warning',
+        description: 'Modification de l\'horaire du train Paris-Lyon'
+      },
+      {
+        title: 'Nouvelle station ajoutée',
+        time: 'Il y a 1 heure',
+        icon: 'train',
+        color: 'success',
+        description: 'Station "Gare de Lyon-Part-Dieu" ajoutée'
+      }
+    ]);
   }, []);
 
   if (!isAuthenticated) {
-    return null; // or a loading spinner
+    return null;
   }
 
-  const handleAnnouncementRedirect = () => {
-    router.push('/admin/banque-de-sons');
-  };
+  const stats = [
+    {
+      title: 'Trafic Journalier',
+      value: '2,547',
+      icon: 'trending_up',
+      color: 'success',
+      change: 12,
+      subtitle: 'Trains en circulation aujourd\'hui'
+    },
+    {
+      title: 'Ponctualité',
+      value: '96%',
+      icon: 'timer',
+      color: 'primary',
+      change: 3,
+      subtitle: 'Moyenne sur les 30 derniers jours'
+    },
+    {
+      title: 'Annonces Diffusées',
+      value: '1,286',
+      icon: 'campaign',
+      color: 'info',
+      change: 8,
+      subtitle: 'Dernières 24 heures'
+    },
+    {
+      title: 'Alertes Actives',
+      value: '3',
+      icon: 'warning',
+      color: 'warning',
+      change: -25,
+      subtitle: 'Perturbations en cours'
+    }
+  ];
 
   return (
-    <>
-      <div id="wrapper">
-        {/* Sidebar */}
-        <Sidebar />
-        {/* End of Sidebar */}
-
-        {/* Content Wrapper */}
-        <div id="content-wrapper" className="d-flex flex-column">
-          {/* Main Content */}
-          <div id="content">
-            {/* Topbar */}
-            <nav className="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-              <h1 className="h3 mb-0 text-gray-800">Dashboard Admin</h1>
-            </nav>
-            {/* End of Topbar */}
-
-            {/* Begin Page Content */}
-            <div className="container-fluid">
-              {/* Widgets Row */}
-              <div className="row">
-                {/* Station Count Widget */}
-                <div className="col-xl-3 col-md-6 mb-4">
-                  <div className="card border-left-primary shadow h-100 py-2">
-                    <div className="card-body">
-                      <div className="row no-gutters align-items-center">
-                        <div className="col mr-2">
-                          <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Nombre de gares
-                          </div>
-                          <div className="h5 mb-0 font-weight-bold text-gray-800">{stationCount}</div>
-                        </div>
-                        <div className="col-auto">
-                          <i className="fas fa-train fa-2x text-gray-300"></i>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Schedule Count Widget */}
-                <div className="col-xl-3 col-md-6 mb-4">
-                  <div className="card border-left-success shadow h-100 py-2">
-                    <div className="card-body">
-                      <div className="row no-gutters align-items-center">
-                        <div className="col mr-2">
-                          <div className="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Nombre d'horaires créés
-                          </div>
-                          <div className="h5 mb-0 font-weight-bold text-gray-800">{scheduleCount}</div>
-                        </div>
-                        <div className="col-auto">
-                          <i className="fas fa-clock fa-2x text-gray-300"></i>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* On Time Ratio Widget */}
-                <div className="col-xl-3 col-md-6 mb-4">
-                  <div className="card border-left-info shadow h-100 py-2">
-                    <div className="card-body">
-                      <div className="row no-gutters align-items-center">
-                        <div className="col mr-2">
-                          <div className="text-xs font-weight-bold text-info text-uppercase mb-1">
-                            Ratio d'horaires à l'heure (%)
-                          </div>
-                          <div className="h5 mb-0 font-weight-bold text-gray-800">
-                            {onTimeRatio !== null ? `${onTimeRatio}%` : 'N/A'}
-                          </div>
-                        </div>
-                        <div className="col-auto">
-                          <i className="fas fa-check-circle fa-2x text-gray-300"></i>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Announcement System Redirect Widget */}
-                <div className="col-xl-3 col-md-6 mb-4">
-                  <div
-                    className="card border-left-warning shadow h-100 py-2"
-                    style={{ cursor: 'pointer' }}
-                    onClick={handleAnnouncementRedirect}
-                  >
-                    <div className="card-body">
-                      <div className="row no-gutters align-items-center">
-                        <div className="col mr-2">
-                          <div className="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                            Système d'annonces vocales
-                          </div>
-                          <div className="h5 mb-0 font-weight-bold text-gray-800">
-                            Accéder au système
-                          </div>
-                        </div>
-                        <div className="col-auto">
-                          <i className="fas fa-bullhorn fa-2x text-gray-300"></i>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {/* End Widgets Row */}
-
-              <h2>Bienvenue dans l'espace admin</h2>
-              <p>Utilisez le menu latéral pour naviguer.</p>
-            </div>
-            {/* /.container-fluid */}
-          </div>
-          {/* End of Main Content */}
+    <div className="app-container">
+      <Sidebar />
+      <MobileMenuToggle />
+      
+      <main className="sncf-content">
+        <div className="d-flex align-items-center bg-white p-3 shadow-sm mb-4">
+          <h1 className="sncf-title mb-0">Dashboard Admin</h1>
         </div>
-        {/* End of Content Wrapper */}
-      </div>
-    </>
+
+        <div className="container-fluid">
+          <div className="row g-4 mb-4">
+            <div className="col-xl-3 col-md-6">
+              <DashboardWidget
+                title="Nombre de gares"
+                value={stationCount}
+                icon="train"
+                color="primary"
+                onClick={() => router.push('/stations')}
+              />
+            </div>
+            <div className="col-xl-3 col-md-6">
+              <DashboardWidget
+                title="Horaires créés"
+                value={scheduleCount}
+                icon="schedule"
+                color="info"
+                onClick={() => router.push('/admin/horaires')}
+              />
+            </div>
+            <div className="col-xl-3 col-md-6">
+              <DashboardWidget
+                title="Ratio de ponctualité"
+                value={`${onTimeRatio || 0}%`}
+                icon="verified"
+                color="success"
+              />
+            </div>
+            <div className="col-xl-3 col-md-6">
+              <DashboardWidget
+                title="Système d'annonces"
+                value="Accéder"
+                icon="campaign"
+                color="warning"
+                onClick={() => router.push('/admin/banque-de-sons')}
+              />
+            </div>
+          </div>
+
+          <div className="row g-4">
+            <div className="col-lg-8">
+              <RecentStats stats={stats} />
+            </div>
+            <div className="col-lg-4">
+              <ActivityFeed activities={activities} />
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }
