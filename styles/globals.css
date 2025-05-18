@@ -51,6 +51,31 @@
   transition: color 0.2s;
 }
 
+.mastheader .header-icon-link {
+  color: var(--dark);
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  min-width: 64px;
+  transition: color 0.2s;
+}
+
+.mastheader .header-icon-link:hover {
+  color: var(--primary);
+}
+
+.mastheader .header-icon-link .material-icons {
+  font-size: 1.5rem;
+}
+
+.mastheader .header-icon-link small {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
 .mastheader .nav-link:hover,
 .mastheader .nav-link.active {
   color: var(--primary);

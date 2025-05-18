@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { AuthContext } from './_app';
+import Header from '../components/Header';
 
 export default function AbonnementsEtBillets() {
   const [ticketTypes, setTicketTypes] = useState([]);
@@ -39,6 +40,9 @@ export default function AbonnementsEtBillets() {
   };
 
   return (
+
+     <div className="main-wrapper">
+           <Header />
     <div className="container my-5">
       <h1>Abonnements et Billets</h1>
 
@@ -81,6 +85,7 @@ export default function AbonnementsEtBillets() {
           </div>
         )}
       </section>
+    </div>
     </div>
   );
 }

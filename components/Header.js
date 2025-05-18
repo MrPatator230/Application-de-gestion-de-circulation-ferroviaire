@@ -1,45 +1,73 @@
 import Link from 'next/link';
-import { useContext } from 'react';
-import { AuthContext } from '../pages/_app';
+import Image from 'next/image';
+import { useRouter } from 'next/router';
 
 export default function Header() {
-  const { isAuthenticated, role, logout } = useContext(AuthContext);
+  const router = useRouter();
+  const currentPath = router.pathname;
 
   return (
-    <header className="bg-white py-4 shadow-md mb-8">
-      <nav className="container mx-auto flex justify-between items-center px-4">
-        <h2 className="text-2xl font-semibold text-gray-800">TER Bourgogne - Franche-Comté</h2>
-        <div className="space-x-4">
-          {!isAuthenticated ? (
-            <>
-              <Link href="/" legacyBehavior>
-                <a className="text-gray-700 hover:text-green-700 font-medium">Accueil</a>
-              </Link>
-              <Link href="/login" legacyBehavior>
-                <a className="px-3 py-1 border border-green-700 text-green-700 rounded hover:bg-green-700 hover:text-white transition">Se connecter</a>
-              </Link>
-              <Link href="/horaires-par-gares" legacyBehavior>
-                <a className="px-3 py-1 border border-gray-400 text-gray-600 rounded hover:bg-gray-200 transition">Horaires</a>
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link href={`/${role}`} legacyBehavior>
-                <a className="text-gray-700 hover:text-green-700 font-medium">Dashboard</a>
-              </Link>
-              <Link href="/horaires-par-gares" legacyBehavior>
-                <a className="text-gray-700 hover:text-green-700 font-medium">Horaires</a>
-              </Link>
-              <button
-                onClick={logout}
-                className="px-3 py-1 border border-red-600 text-red-600 rounded hover:bg-red-600 hover:text-white transition"
-              >
-                Déconnexion
-              </button>
-            </>
-          )}
+    <header className="mastheader bg-white shadow-sm">
+      <div className="container-fluid">
+        <div className="d-flex align-items-center py-2">
+          <Link href="/" className="me-4">
+            <Image
+              src="/images/logo-ter-mobigo.svg"
+              alt="SNCF Logo"
+              width={300}
+              height={84}
+              priority
+            />
+          </Link>
+
+          <nav className="nav flex-grow-1">
+            <Link 
+              href="/" 
+              className={`nav-link ${currentPath === '/' ? 'active' : ''}`}
+            >
+              Accueil
+            </Link>
+            <Link 
+              href="/stations" 
+              className={`nav-link ${currentPath === '/stations' ? 'active' : ''}`}
+            >
+              Gares
+            </Link>
+            <Link 
+              href="/verifier-horaires" 
+              className={`nav-link ${currentPath === '/verifier-horaires' ? 'active' : ''}`}
+            >
+              <span className="material-icons me-1">search</span>
+              Vérifier Horaires
+            </Link>
+            <Link 
+              href="/actualites" 
+              className={`nav-link ${currentPath === '/actualites' ? 'active' : ''}`}
+            >
+              Actualités
+            </Link>
+            <Link 
+              href="/abonnements-et-billets" 
+              className={`nav-link ${currentPath === '/abonnements-et-billets' ? 'active' : ''}`}
+            >
+              Abonnements & Billets
+            </Link>
+          </nav>
+
+          <div className="d-flex align-items-center">
+            <Link href="/commande" className="header-icon-link">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#00682b" width="24" aria-hidden="true" data-testid="icon-order" focusable="false"><path fill-rule="evenodd" d="M18.581 1.705l1.185 1.186c-.006.006-.015.006-.022.013-.143.143-.16.392-.015.534l2.258 2.265c.142.14.391.125.533-.018.008-.006.01-.014.014-.02l1.107 1.11c.479.478.479 1.251 0 1.73L8.492 23.643a1.221 1.221 0 0 1-1.73-.004l-5.06-5.066L18.58 1.705zM15.508.357a1.221 1.221 0 0 1 1.73.004l.118.115L.473 17.342l-.116-.116a1.227 1.227 0 0 1 0-1.732z"></path></svg>
+              <small>Commande</small>
+            </Link>
+            <Link href="/panier" className="header-icon-link">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#00682b" width="24" height="24" aria-hidden="true" data-testid="icon-shop" focusable="false"><path fill-rule="evenodd" clip-rule="evenodd" d="M11.9999 8.5C13.9329 8.5 15.4999 6.933 15.4999 5C15.4999 3.067 13.9329 1.5 11.9999 1.5C10.0669 1.5 8.49994 3.067 8.49994 5C8.49994 6.933 10.0669 8.5 11.9999 8.5ZM11.9999 10C14.7614 10 16.9999 7.76142 16.9999 5C16.9999 2.23858 14.7614 0 11.9999 0C9.23852 0 6.99994 2.23858 6.99994 5C6.99994 7.76142 9.23852 10 11.9999 10Z"></path><path d="M0.444166 7.36858C0.213385 6.13775 1.15763 5 2.40991 5H21.5902C22.8425 5 23.7867 6.13775 23.5559 7.36858L21.3059 19.3686C21.1286 20.3145 20.3026 21 19.3402 21H4.65991C3.69748 21 2.87153 20.3145 2.69417 19.3686L0.444166 7.36858Z"></path></svg>              <small>Panier</small>
+            </Link>
+            <Link href="/compte" className="header-icon-link">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#00682b" width="24" height="24" aria-hidden="true" data-testid="icon-account" focusable="false"><path fill-rule="evenodd" d="M14.674 14.864l7.122 1.516c1.31.334 2.204 1.529 2.204 2.895V24H0v-4.725c0-1.366.917-2.56 2.227-2.895l7.122-1.516a10.76 10.76 0 0 1 5.325 0zM12 0a6 6 0 1 1-.001 12.001A6 6 0 0 1 12 0z"></path></svg>             <small>Compte</small>
+            </Link>
+          </div>
         </div>
-      </nav>
+      </div>
     </header>
   );
 }
