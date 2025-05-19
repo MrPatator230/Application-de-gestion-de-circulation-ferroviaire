@@ -2,9 +2,8 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/admin": "pages/admin.js",
-  "/abonnements-et-billets": "pages/abonnements-et-billets.js",
   "/api/settings": "pages/api/settings.js",
-  "/": "pages/index.js",
-  "/verifier-horaires": "pages/verifier-horaires.js"
+  "/verifier-horaires": "pages/verifier-horaires.js",
+  "/admin": "pages/admin.js",
+  "/": "pages/index.js"
 }

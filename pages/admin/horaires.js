@@ -142,31 +142,12 @@ export default function Horaires() {
       return;
     }
 
-    // Relaxed validation: served stations are not mandatory
-    const servedStationsList = servedStations.filter(s => s.name.trim() !== '');
-
-    // Add main departure and arrival stations to servedStationsList if not present
-    if (!servedStationsList.find(s => s.name === departureStation)) {
-      servedStationsList.unshift({ name: departureStation, arrivalTime: '', departureTime: departureTime });
-    } else {
-      // Update times if present
-      servedStationsList.forEach(s => {
-        if (s.name === departureStation) {
-          s.departureTime = departureTime;
-          s.arrivalTime = s.arrivalTime || '';
-        }
-      });
-    }
-    if (!servedStationsList.find(s => s.name === arrivalStation)) {
-      servedStationsList.push({ name: arrivalStation, arrivalTime: arrivalTime, departureTime: '' });
-    } else {
-      servedStationsList.forEach(s => {
-        if (s.name === arrivalStation) {
-          s.arrivalTime = arrivalTime;
-          s.departureTime = s.departureTime || '';
-        }
-      });
-    }
+    // Filtrer les gares desservies valides (sans ajouter départ/arrivée)
+    const servedStationsList = servedStations.filter(s => 
+      s.name.trim() !== '' && 
+      s.name !== departureStation && 
+      s.name !== arrivalStation
+    );
 
     // Add new stations if not exist
     let updatedStations = [...stations];

@@ -160,15 +160,15 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Sidebar Styles */
 .sncf-sidebar {
-  width: 320px;
-  min-width: 280px;
+  width: 300px;
+  min-width: 300PX;
   height: 100vh;
   display: flex;
   flex-direction: column;
-  position: sticky;
+  position: fixed;
   top: 0;
   left: 0;
-  z-index: 1030;
+  z-index: 8000;
   transition: all 0.3s ease;
   background-color: white;
   box-shadow: 1px 0 5px rgba(0, 0, 0, 0.05);
