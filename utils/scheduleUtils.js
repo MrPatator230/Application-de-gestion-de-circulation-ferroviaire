@@ -258,7 +258,6 @@ export const updateSchedule = (id, updatedSchedule) => {
   }
 };
 
-// Fonction pour réinitialiser retards et suppressions à zéro
 export const resetDelaysAndCancellations = () => {
   if (typeof window === 'undefined') return;
 
@@ -269,4 +268,26 @@ export const resetDelaysAndCancellations = () => {
     isCancelled: false,
   }));
   localStorage.setItem('schedules', JSON.stringify(updatedSchedules));
+};
+
+/**
+ * Fonction pour ajouter un nouvel horaire
+ * @param {Object} schedule - L'objet horaire à ajouter
+ */
+export const addSchedule = (schedule) => {
+  if (typeof window === 'undefined') return;
+
+  const schedules = JSON.parse(localStorage.getItem('schedules') || '[]');
+  const newSchedule = { ...schedule, id: Date.now() };
+  schedules.push(newSchedule);
+  localStorage.setItem('schedules', JSON.stringify(schedules));
+};
+
+// Fonction pour supprimer un horaire par id
+export const deleteSchedule = (id) => {
+  if (typeof window === 'undefined') return;
+
+  const schedules = JSON.parse(localStorage.getItem('schedules') || '[]');
+  const filteredSchedules = schedules.filter(schedule => schedule.id !== id);
+  localStorage.setItem('schedules', JSON.stringify(filteredSchedules));
 };
