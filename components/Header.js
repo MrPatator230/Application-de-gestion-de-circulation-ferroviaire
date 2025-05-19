@@ -43,13 +43,19 @@ export default function Header() {
               Actualités
             </Link>
 
-            <Link 
+          <Link 
               href="/abonnements-et-billets" 
               className={`nav-link ${currentPath === '/abonnements-et-billets' ? 'active' : ''}`}
             >
               Abonnements & Billets
             </Link>
 
+            <Link 
+              href="/horaires-par-gare" 
+              className={`nav-link ${currentPath === '/horaires-par-gare' ? 'active' : ''}`}
+            >
+              Horaires par gare
+            </Link>
           </nav>
 
           <div className="d-flex align-items-center">

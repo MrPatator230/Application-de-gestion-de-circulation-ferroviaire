@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import Sidebar from '../../components/Sidebar';
 import { AuthContext } from '../_app';
+import { getAllSchedules, addSchedule, updateSchedule, deleteSchedule } from '../../utils/scheduleUtils';
 
 const TRAIN_TYPES = ['TER', 'TGV', 'Intercités', 'Trains MOBIGO'];
 const WEEK_DAYS = [
@@ -20,7 +21,7 @@ export default function Horaires() {
 
   const [schedules, setSchedules] = useState([]);
   const [folders, setFolders] = useState([]);
-  const [scheduleFolderMap, setScheduleFolderMap] = useState({}); // scheduleId -> folderId
+  const [scheduleFolderMap, setScheduleFolderMap] = useState({});
   const [selectedFolderId, setSelectedFolderId] = useState(null);
   const [stations, setStations] = useState([]);
   const [materielsRoulants, setMaterielsRoulants] = useState([]);
@@ -49,11 +50,8 @@ export default function Horaires() {
   }, [isAuthenticated, role, router]);
 
   useEffect(() => {
-    // Load schedules, stations, materiels roulants, folders, and schedule-folder map from localStorage
-    const savedSchedules = localStorage.getItem('schedules');
-    if (savedSchedules) {
-      setSchedules(JSON.parse(savedSchedules));
-    }
+    // Load data from localStorage
+    setSchedules(getAllSchedules());
     const savedStations = localStorage.getItem('stations');
     if (savedStations) {
       setStations(JSON.parse(savedStations));
@@ -71,11 +69,6 @@ export default function Horaires() {
       setScheduleFolderMap(JSON.parse(savedMap));
     }
   }, []);
-
-  const saveSchedules = (newSchedules) => {
-    setSchedules(newSchedules);
-    localStorage.setItem('schedules', JSON.stringify(newSchedules));
-  };
 
   const saveFolders = (newFolders) => {
     setFolders(newFolders);
@@ -137,12 +130,12 @@ export default function Horaires() {
     e.preventDefault();
 
     // Validate required fields
-    if (!trainNumber || !departureStation || !arrivalStation || !arrivalTime || !departureTime || !trainType || joursCirculation.length === 0) {
-      alert('Veuillez remplir tous les champs obligatoires, y compris les jours de circulation.');
-      return;
-    }
+if (!trainNumber || !departureStation || !arrivalStation || !arrivalTime || !departureTime || !trainType || !joursCirculation || joursCirculation.length === 0) {
+  alert('Veuillez remplir tous les champs obligatoires, y compris les jours de circulation.');
+  return;
+}
 
-    // Filtrer les gares desservies valides (sans ajouter départ/arrivée)
+    // Filtrer les gares desservies valides
     const servedStationsList = servedStations.filter(s => 
       s.name.trim() !== '' && 
       s.name !== departureStation && 
@@ -156,7 +149,6 @@ export default function Horaires() {
         updatedStations.push({ name: station.name, categories: [] });
       }
     });
-    // Also add departure and arrival stations if not exist
     if (departureStation && !updatedStations.find(s => s.name === departureStation)) {
       updatedStations.push({ name: departureStation, categories: [] });
     }
@@ -165,46 +157,30 @@ export default function Horaires() {
     }
     saveStations(updatedStations);
 
+    const scheduleData = {
+      trainNumber,
+      departureStation,
+      arrivalStation,
+      arrivalTime,
+      departureTime,
+      trainType,
+      rollingStockFileName: rollingStockFileName || null,
+      servedStations: servedStationsList,
+      joursCirculation,
+    };
+
     if (editingSchedule) {
       // Update existing schedule
-      const updatedSchedules = schedules.map(s => {
-        if (s.id === editingSchedule.id) {
-          return {
-            ...s,
-            trainNumber,
-            departureStation,
-            arrivalStation,
-            arrivalTime,
-            departureTime,
-            trainType,
-            rollingStockFileName: rollingStockFileName || s.rollingStockFileName,
-            servedStations: servedStationsList,
-            joursCirculation,
-          };
-        }
-        return s;
-      });
-      saveSchedules(updatedSchedules);
+      updateSchedule(editingSchedule.id, scheduleData);
+      setSchedules(getAllSchedules());
     } else {
-      // Create new schedule object
-      const newSchedule = {
-        id: Date.now(),
-        trainNumber,
-        departureStation,
-        arrivalStation,
-        arrivalTime,
-        departureTime,
-        trainType,
-        rollingStockFileName: rollingStockFileName || null,
-        servedStations: servedStationsList,
-        joursCirculation,
-      };
-      const newSchedules = [...schedules, newSchedule];
-      saveSchedules(newSchedules);
+      // Create new schedule
+      addSchedule(scheduleData);
+      setSchedules(getAllSchedules());
 
       // Update scheduleFolderMap with folderId for this schedule
       if (folderId) {
-        const newMap = { ...scheduleFolderMap, [newSchedule.id]: folderId };
+        const newMap = { ...scheduleFolderMap, [scheduleData.id]: folderId };
         saveScheduleFolderMap(newMap);
       }
     }
@@ -342,8 +318,8 @@ export default function Horaires() {
                               setDepartureTime(schedule.departureTime);
                               setTrainType(schedule.trainType);
                               setRollingStockFileName(schedule.rollingStockFileName || '');
-                              setServedStations(schedule.servedStations.length > 0 ? schedule.servedStations : [{ name: '', arrivalTime: '', departureTime: '' }]);
-                              setJoursCirculation(schedule.joursCirculation || []);
+setServedStations(schedule.servedStations && schedule.servedStations.length > 0 ? schedule.servedStations : [{ name: '', arrivalTime: '', departureTime: '' }]);
+setJoursCirculation(schedule.joursCirculation || []);
                               setFolderId(scheduleFolderMap[schedule.id] || null);
                               setShowModal(true);
                             }}
@@ -356,8 +332,8 @@ export default function Horaires() {
                             onClick={(e) => {
                               e.stopPropagation();
                               if (confirm('Êtes-vous sûr de vouloir supprimer cet horaire ?')) {
-                                const newSchedules = schedules.filter(s => s.id !== schedule.id);
-                                saveSchedules(newSchedules);
+                                deleteSchedule(schedule.id);
+                                setSchedules(getAllSchedules());
                                 if (selectedSchedule && selectedSchedule.id === schedule.id) {
                                   setSelectedSchedule(null);
                                   setShowDetailsModal(false);

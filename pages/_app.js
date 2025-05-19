@@ -7,6 +7,7 @@ import { createContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { SettingsProvider } from '../contexts/SettingsContext';
+import { initTestData } from '../utils/testData';
 
 export const AuthContext = createContext();
 
@@ -19,8 +20,12 @@ export default function MyApp({ Component, pageProps }) {
   const [role, setRole] = useState(null); // 'admin' or 'client'
   const router = useRouter();
 
-  // Load jQuery, Popper.js, and Bootstrap JS
+  // Initialize test data and load scripts
   useEffect(() => {
+    // Initialize test data
+    initTestData();
+
+    // Load jQuery, Popper.js, and Bootstrap JS
     if (typeof window !== 'undefined') {
       const loadScript = (src) => {
         return new Promise((resolve, reject) => {

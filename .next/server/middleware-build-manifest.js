@@ -25,6 +25,11 @@ globalThis.__BUILD_MANIFEST = {
       "static/chunks/main.js",
       "static/chunks/pages/admin.js"
     ],
+    "/admin/gestion-horaires": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/admin/gestion-horaires.js"
+    ],
     "/admin/horaires": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
@@ -35,15 +40,25 @@ globalThis.__BUILD_MANIFEST = {
       "static/chunks/main.js",
       "static/chunks/pages/admin/type-horaires.js"
     ],
+    "/horaires-par-gare": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/horaires-par-gare.js"
+    ],
+    "/horaires-par-gare/[station]": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/horaires-par-gare/[station].js"
+    ],
+    "/login": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/login.js"
+    ],
     "/offers": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/offers.js"
-    ],
-    "/verifier-horaires": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/verifier-horaires.js"
     ]
   },
   "ampFirstPages": []
