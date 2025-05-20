@@ -45,18 +45,19 @@ export default function StationSchedule() {
       name: schedule.departureStation,
       originalTime: schedule.departureTime,
       time: status.status === 'delayed' ? getDelayedTime(schedule.departureTime, schedule.delayMinutes) : schedule.departureTime,
-      track: '-',
+      track: schedule.trackAssignments?.[schedule.departureStation] || schedule.track || '-',
       status
     });
 
     if (schedule.servedStations) {
       schedule.servedStations.forEach(station => {
+        const stationName = typeof station === 'object' ? station.name : station;
         const stationTime = typeof station === 'object' ? station.departureTime : null;
         stations.push({
-          name: typeof station === 'object' ? station.name : station,
+          name: stationName,
           originalTime: stationTime,
           time: status.status === 'delayed' && stationTime ? getDelayedTime(stationTime, schedule.delayMinutes) : stationTime,
-          track: '1',
+          track: schedule.trackAssignments?.[stationName] || schedule.track || '-',
           status
         });
       });
@@ -66,7 +67,7 @@ export default function StationSchedule() {
       name: schedule.arrivalStation,
       originalTime: schedule.arrivalTime,
       time: status.status === 'delayed' ? getDelayedTime(schedule.arrivalTime, schedule.delayMinutes) : schedule.arrivalTime,
-      track: '-',
+      track: schedule.trackAssignments?.[schedule.arrivalStation] || schedule.track || '-',
       status
     });
 
@@ -134,63 +135,73 @@ export default function StationSchedule() {
                       Aucun horaire trouvé pour cette gare
                     </div>
                   ) : (
-                    <div className="schedule-table">
-                      {schedules.map((schedule) => {
-                        const status = getTrainStatus(schedule);
-                        return (
-<div key={schedule.id} className={`schedule-item ${status.className}`}>
-  <div
-    className="schedule-row"
-    onClick={() => handleScheduleClick(schedule)}
-    style={status.status === 'cancelled' ? { textDecoration: 'line-through', color: '#dc3545' } : {}}
-  >
-    <div className="schedule-time">
-      {status.status === 'delayed' ? (
-        <>
-          <span className="original-time">
-            {getStationTime(schedule, decodeURIComponent(station), scheduleType === 'departures' ? 'departure' : 'arrival')}
-          </span>
-          <span className="delayed-time">
-            {status.delayedTime}
-          </span>
-        </>
-      ) : (
-        getStationTime(schedule, decodeURIComponent(station), scheduleType === 'departures' ? 'departure' : 'arrival')
-      )}
-    </div>
-    <div className="schedule-destination">
-      {getStationEndpoint(schedule, decodeURIComponent(station), scheduleType)}
-    </div>
-    <div className="schedule-train">
-      <i className="icons-train mr-2" aria-hidden="true"></i>
-      Train {schedule.trainNumber}
-    </div>
-    <div className="schedule-track">
-      Quai: {schedule.track || '-'}
-    </div>
-    <div className="schedule-arrival">
-      {scheduleType === 'departures' ? schedule.arrivalTime : schedule.departureTime}
-    </div>
-    <div className="schedule-status">
-      {status.status === 'ontime' && (
-        <i className="icons-check text-success" aria-hidden="true"></i>
-      )}
-      {status.status === 'delayed' && (
-        <span className="badge bg-warning">
-          {status.label}
-        </span>
-      )}
-    </div>
-  </div>
-  {status.status === 'cancelled' && (
-    <div className="cancellation-banner">
-      Train supprimé
-    </div>
-  )}
-</div>
-                        );
-                      })}
-                    </div>
+                <div className="schedule-table">
+                  {schedules.map((schedule) => {
+                    const status = getTrainStatus(schedule);
+                    // Determine badge placement and label for "Retard"
+                    const isDepartures = scheduleType === 'departures';
+                    const isArrivals = scheduleType === 'arrivals';
+                    const badgeStationDeparture = isDepartures ? schedule.arrivalStation : schedule.departureStation;
+                    const badgeStationArrivals = isArrivals ? schedule.departureStation : schedule.arrivalStation;
+
+                    const showBadge = status.status === 'delayed';
+                    const badgeLabel = status.label;
+
+                    return (
+                      <div key={schedule.id} className={`schedule-item ${status.className}`}>
+                        <div
+                          className="schedule-row"
+                          onClick={() => handleScheduleClick(schedule)}
+                          style={status.status === 'cancelled' ? { textDecoration: 'line-through', color: '#dc143c' } : {}}
+                        >
+                          <div className="schedule-time" style={{ display: 'flex', flexDirection: 'column' }}>
+                            {showBadge && isDepartures && (
+                              <span className="delayed-time" style={{ order: 0, color: '#fd7e14' }}>
+                                {getStationTime(schedule, decodeURIComponent(station), 'departure', true)}
+                              </span>
+                            )}
+                            {showBadge && isArrivals && (
+                              <span className="delayed-time" style={{ order: 0, color: '#fd7e14' }}>
+                                {getStationTime(schedule, decodeURIComponent(station), 'arrival', true)}
+                              </span>
+                            )}
+                            <span className={showBadge ? 'original-time' : ''} style={{ order: 1 }}>
+                              {getStationTime(schedule, decodeURIComponent(station), isDepartures ? 'departure' : 'arrival', false)}
+                            </span>
+                            
+                          </div>
+                          <div className="schedule-destination">
+                            {isDepartures ? schedule.arrivalStation : schedule.departureStation}
+                          {showBadge && (
+                              <span className="badge bg-warning" style={{ marginLeft: '0.5rem' }}>
+                                {badgeLabel}
+                              </span>)}
+                              
+                              {status.status === 'cancelled' && (
+                            <span className="badge bg-danger ml-2" style={{ marginLeft: '1rem' }}>
+                              Supprimé
+                            </span>
+                          )}</div>
+                          <div className="schedule-train">
+                            <i className="icons-train mr-2" aria-hidden="true"></i>
+                            Train {schedule.trainNumber}
+                          </div>
+                          <div className="schedule-track">
+                            Quai: {schedule.track || '-'}
+                          </div>
+                          
+                           
+                            
+                              
+                            
+                          </div>
+                          {/* Removed the schedule-status column as requested */}
+                          
+                        </div>
+                     
+                    );
+                  })}
+                </div>
                   )}
                 </div>
               </div>
@@ -222,7 +233,9 @@ export default function StationSchedule() {
                         {station.status.status === 'delayed' ? (
                           <div className="delayed-times">
                             <span className="delayed-new-time">{station.time}</span>
-                            <span className="delayed-original-time">{station.originalTime}</span>
+                            {station.time !== station.originalTime && (
+                              <span className="delayed-original-time">{station.originalTime}</span>
+                            )}
                           </div>
                         ) : (
                           station.time || '-'
@@ -278,7 +291,7 @@ export default function StationSchedule() {
 
           .schedule-row {
             display: grid;
-            grid-template-columns: 80px 1fr 200px 80px 100px;
+            grid-template-columns: 80px 1fr 200px 80px;
             align-items: center;
             padding: 1rem;
             border-bottom: 1px solid #dee2e6;
@@ -295,6 +308,10 @@ export default function StationSchedule() {
             font-size: 1.1rem;
             font-weight: 600;
             color: #000066;
+          }
+          .cancelled-text {
+            text-decoration: line-through;
+            color: #dc143c !important;
           }
 
           .original-time {

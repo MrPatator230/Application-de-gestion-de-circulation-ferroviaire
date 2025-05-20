@@ -108,7 +108,7 @@ export default function HorairesParGare() {
         }
 
         .list-unstyled i {
-          color: #00a1e5;
+          color: #000044;
         }
 
         ol {

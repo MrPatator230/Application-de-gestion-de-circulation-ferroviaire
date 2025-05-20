@@ -34,6 +34,12 @@ export default function ClientSidebar({ activeTab, setActiveTab, onLogout, onDel
                 Mes abonnements
               </Link>
             </li>
+            <li>
+              <Link href="/client/reservations" className="btn btn-transparent text-white w-100 mb-2">
+                <i className="icons-ticket icons-size-1x5 mr-2" aria-hidden="true"></i>
+                Mes réservations
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

@@ -91,31 +91,37 @@ export const getStationSchedules = (stationName) => {
 };
 
 // Fonction pour obtenir l'heure de départ ou d'arrivée pour une gare spécifique
-export const getStationTime = (schedule, stationName, type = 'departure') => {
+export const getStationTime = (schedule, stationName, type = 'departure', applyDelay = true) => {
   if (!schedule || !stationName) return null;
 
   try {
     if (type === 'departure') {
       if (schedule.departureStation === stationName) {
         return schedule.isCancelled ? schedule.departureTime :
-               schedule.delayMinutes ? getDelayedTime(schedule.departureTime, schedule.delayMinutes) :
+               (applyDelay && schedule.delayMinutes) ? getDelayedTime(schedule.departureTime, schedule.delayMinutes) :
                schedule.departureTime;
       }
 
       const normalizedServedStations = normalizeServedStations(schedule.servedStations);
       const servedStation = normalizedServedStations.find(s => s.name === stationName);
-      return servedStation?.departureTime || null;
+      if (!servedStation) return null;
+      return (applyDelay && schedule.delayMinutes && servedStation.departureTime)
+        ? getDelayedTime(servedStation.departureTime, schedule.delayMinutes)
+        : servedStation.departureTime || null;
 
     } else {
       if (schedule.arrivalStation === stationName) {
         return schedule.isCancelled ? schedule.arrivalTime :
-               schedule.delayMinutes ? getDelayedTime(schedule.arrivalTime, schedule.delayMinutes) :
+               (applyDelay && schedule.delayMinutes) ? getDelayedTime(schedule.arrivalTime, schedule.delayMinutes) :
                schedule.arrivalTime;
       }
 
       const normalizedServedStations = normalizeServedStations(schedule.servedStations);
       const servedStation = normalizedServedStations.find(s => s.name === stationName);
-      return servedStation?.arrivalTime || null;
+      if (!servedStation) return null;
+      return (applyDelay && schedule.delayMinutes && servedStation.arrivalTime)
+        ? getDelayedTime(servedStation.arrivalTime, schedule.delayMinutes)
+        : servedStation.arrivalTime || null;
     }
   } catch (error) {
     console.error('Erreur lors de la récupération de l\'heure:', error);

@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
+import { AuthContext } from './_app';
+import TrainVisualSlider from '../components/TrainVisualSlider';
 import { 
   formatDisplayDate, 
   formatDay,
@@ -194,9 +196,73 @@ export default function Offers() {
     }
   }, [router.query]);
 
+  const [ticketTypes, setTicketTypes] = useState([]);
+  const { user } = useContext(AuthContext);
+
+  useEffect(() => {
+    const savedTicketTypes = localStorage.getItem('ticketTypes');
+    if (savedTicketTypes) {
+      setTicketTypes(JSON.parse(savedTicketTypes));
+    }
+  }, []);
+
   const handleScheduleClick = (schedule) => {
+    console.log('Schedule clicked:', schedule);
+    console.log('Current modal state:', showStationsModal);
     setSelectedSchedule(schedule);
     setShowStationsModal(true);
+    console.log('New modal state:', true);
+  };
+
+  const handlePurchaseTicket = (schedule) => {
+    console.log('handlePurchaseTicket called');
+    console.log('User:', user);
+    if (!user) {
+      alert('Vous devez être connecté pour acheter un billet.');
+      router.push('/login');
+      return;
+    }
+
+    // Check if user role is client (case insensitive)
+    if (!user.role || user.role.toLowerCase() !== 'client') {
+      alert('Seuls les utilisateurs avec le rôle Client peuvent réserver un billet.');
+      return;
+    }
+
+    // Get the ticket type for single journey
+    const ticketType = ticketTypes.find(t => t.category === 'Billet');
+    console.log('Ticket types:', ticketTypes);
+    console.log('Selected ticket type:', ticketType);
+    if (!ticketType) {
+      alert('Aucun type de billet disponible.');
+      return;
+    }
+
+    // Add ticket to cart instead of immediate reservation
+    const cartKey = `ticketCart_${user.username || user.id}`;
+    console.log('Cart key:', cartKey);
+    const cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
+    console.log('Current cart:', cart);
+    const ticket = {
+      id: Date.now().toString(),
+      typeId: ticketType.id,
+      typeName: ticketType.name,
+      price: ticketType.price,
+      category: ticketType.category,
+      date: new Date().toISOString(),
+      schedule: {
+        trainNumber: schedule.trainNumber,
+        trainType: schedule.trainType,
+        departureStation: schedule.displayDepartureStation,
+        arrivalStation: schedule.displayArrivalStation,
+        departureTime: schedule.displayDepartureTime,
+        arrivalTime: schedule.displayArrivalTime,
+      }
+    };
+    cart.push(ticket);
+    localStorage.setItem(cartKey, JSON.stringify(cart));
+    console.log('Updated cart:', cart);
+    alert('Billet ajouté au panier !');
   };
 
   if (isLoading) {
@@ -254,49 +320,60 @@ export default function Offers() {
                 {searchResults.aller.trains.length > 0 ? (
                   <div className="offers-list">
                     {searchResults.aller.trains.map((train) => (
-                      <div 
-                        key={train.id} 
-                        className="offer-card"
-                        onClick={() => handleScheduleClick(train)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <div className="offer-header">
+                      <div key={train.id} className="offer-card" onClick={() => handleScheduleClick(train)} style={{ cursor: 'pointer' }}>
+                        <div 
+                          className="offer-header"
+                        >
                           <div className="train-info">
                             <span className="train-type">{train.trainType}</span>
                             <span className="train-number">N° {train.trainNumber}</span>
-                          </div>
-                          <div className="train-status">
-                            <span className="badge bg-success">À l'heure</span>
-                          </div>
                         </div>
-                        
-                        <div className="offer-body">
-                          <div className="journey-times">
-                            <div className="departure">
-                              <div className="time">{train.displayDepartureTime}</div>
-                              <div className="station">{train.displayDepartureStation}</div>
-                            </div>
-                            <div className="journey-duration">
-                              <div className="duration-line"></div>
-                              <div className="duration-time">
-                                {calculateDuration(train.displayDepartureTime, train.displayArrivalTime)}
-                              </div>
-                            </div>
-                            <div className="arrival">
-                              <div className="time">{train.displayArrivalTime}</div>
-                              <div className="station">{train.displayArrivalStation}</div>
-                            </div>
-                          </div>
-                          {train.servedStations && train.servedStations.length > 0 && (
-                            <div className="via-stations">
-                              <span className="material-icons">route</span>
-                              Gares desservies : {train.servedStations.map(s => s.name).join(', ')}
-                            </div>
-                          )}
+                        <div className="train-status">
+                          <span className="badge bg-success">À l'heure</span>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                      
+                      <div className="offer-body">
+                        <div className="journey-times">
+                          <div className="departure">
+                            <div className="time">{train.displayDepartureTime}</div>
+                            <div className="station">{train.displayDepartureStation}</div>
+                          </div>
+                          <div className="journey-duration">
+                            <div className="duration-line"></div>
+                            <div className="duration-time">
+                              {calculateDuration(train.displayDepartureTime, train.displayArrivalTime)}
+                            </div>
+                          </div>
+                          <div className="arrival">
+                            <div className="time">{train.displayArrivalTime}</div>
+                            <div className="station">{train.displayArrivalStation}</div>
+                          </div>
+                        </div>
+                        {train.servedStations && train.servedStations.length > 0 && (
+                          <div className="via-stations">
+                            <span className="material-icons">route</span>
+                            Gares desservies : {train.servedStations.map(s => s.name).join(', ')}
+                          </div>
+                        )}
+                        <div className="quai-display mt-2">
+                          Quai: {train.track || '-'}
+                        </div>
+                      </div>
+                      <div className="offer-actions">
+                        <button 
+                          className="btn btn-primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePurchaseTicket(train);
+                          }}
+                        >
+                          Acheter un billet
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
                 ) : (
                   <div className="alert alert-info">
                     Aucun train ne circule ce jour.
@@ -316,13 +393,12 @@ export default function Offers() {
                   {searchResults.retour.trains.length > 0 ? (
                     <div className="offers-list">
                       {searchResults.retour.trains.map((train) => (
-                        <div 
-                          key={train.id} 
-                          className="offer-card"
-                          onClick={() => handleScheduleClick(train)}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          <div className="offer-header">
+                        <div key={train.id} className="offer-card">
+                          <div 
+                            className="offer-header"
+                            onClick={() => handleScheduleClick(train)}
+                            style={{ cursor: 'pointer' }}
+                          >
                             <div className="train-info">
                               <span className="train-type">{train.trainType}</span>
                               <span className="train-number">N° {train.trainNumber}</span>
@@ -356,6 +432,17 @@ export default function Offers() {
                               </div>
                             )}
                           </div>
+                          <div className="offer-actions">
+                            <button 
+                              className="btn btn-primary btn-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePurchaseTicket(train);
+                              }}
+                            >
+                              Acheter un billet
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -371,7 +458,21 @@ export default function Offers() {
 
           {/* Modal des gares desservies */}
           {showStationsModal && selectedSchedule && (
-            <div className="modal d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <div 
+              className="modal show" 
+              tabIndex="-1" 
+              role="dialog" 
+              style={{ 
+                display: 'block', 
+                backgroundColor: 'rgba(0,0,0,0.5)',
+                zIndex: 1050 
+              }}
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  setShowStationsModal(false);
+                }
+              }}
+            >
               <div className="modal-dialog modal-lg" role="document">
                 <div className="modal-content">
                   <div className="modal-header">
@@ -391,6 +492,13 @@ export default function Offers() {
                     ></button>
                   </div>
                   <div className="modal-body" style={{ backgroundColor: '#e8f5e9' }}>
+                    {/* Show train visual slider */}
+                    <div className="mb-4">
+                      <TrainVisualSlider
+                        trainName={`${selectedSchedule.trainType} ${selectedSchedule.trainNumber}`}
+                        rollingStockFileName={selectedSchedule.rollingStockFileName}
+                      />
+                    </div>
                     <div className="stations-list">
                       <div className="station-row header">
                         <div className="time">Départ</div>
@@ -409,18 +517,22 @@ export default function Offers() {
                       </div>
 
                       {/* Gares desservies */}
-                      {selectedSchedule.servedStations.map((station, index) => (
-                        <div key={index} className="station-row">
-                          <div className="time">{station.departureTime}</div>
-                          <div className="station">
-                            <div className="station-dot"></div>
-                            {station.name}
+                      {selectedSchedule.servedStations.map((station, index) => {
+                        const stationName = station.name || station;
+                        const quai = trackAssignments[selectedSchedule.id]?.[stationName] || '-';
+                        return (
+                          <div key={index} className="station-row">
+                            <div className="time">{station.departureTime}</div>
+                            <div className="station">
+                              <div className="station-dot"></div>
+                              {stationName}
+                            </div>
+                            <div className="track">
+                              {quai}
+                            </div>
                           </div>
-                          <div className="track">
-                            {trackAssignments[selectedSchedule.id]?.[station.name] || '-'}
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
 
                       {/* Gare d'arrivée */}
                       <div className="station-row">
@@ -526,7 +638,6 @@ export default function Offers() {
           }
 
           .time {
-            font-size: 1.25rem;
             font-weight: 600;
             color: #000066;
           }
@@ -641,6 +752,13 @@ export default function Offers() {
           .modal-header {
             background-color: white;
             border-bottom: none;
+          }
+
+          .offer-actions {
+            padding: 1rem;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            justify-content: flex-end;
           }
 
           .modal-body {

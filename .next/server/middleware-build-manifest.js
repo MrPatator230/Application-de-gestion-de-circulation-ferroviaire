@@ -25,25 +25,45 @@ globalThis.__BUILD_MANIFEST = {
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
-    "/admin/horaires": [
+    "/admin": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/admin/horaires.js"
+      "static/chunks/pages/admin.js"
     ],
-    "/horaires-par-gare": [
+    "/admin/gestion-horaires": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/horaires-par-gare.js"
+      "static/chunks/pages/admin/gestion-horaires.js"
+    ],
+    "/client": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/client.js"
+    ],
+    "/client/reservations": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/client/reservations.js"
     ],
     "/horaires-par-gare/[station]": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/horaires-par-gare/[station].js"
     ],
+    "/login": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/login.js"
+    ],
     "/offers": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/offers.js"
+    ],
+    "/panier": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/panier.js"
     ],
     "/verifier-horaires": [
       "static/chunks/webpack.js",

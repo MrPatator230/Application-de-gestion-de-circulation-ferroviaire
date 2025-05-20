@@ -2,11 +2,15 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/": "pages/index.js",
-  "/api/settings": "pages/api/settings.js",
-  "/admin/horaires": "pages/admin/horaires.js",
-  "/verifier-horaires": "pages/verifier-horaires.js",
-  "/horaires-par-gare": "pages/horaires-par-gare.js",
+  "/horaires-par-gare/[station]": "pages/horaires-par-gare/[station].js",
   "/offers": "pages/offers.js",
-  "/horaires-par-gare/[station]": "pages/horaires-par-gare/[station].js"
+  "/admin/gestion-horaires": "pages/admin/gestion-horaires.js",
+  "/admin": "pages/admin.js",
+  "/login": "pages/login.js",
+  "/": "pages/index.js",
+  "/verifier-horaires": "pages/verifier-horaires.js",
+  "/client": "pages/client.js",
+  "/api/settings": "pages/api/settings.js",
+  "/panier": "pages/panier.js",
+  "/client/reservations": "pages/client/reservations.js"
 }

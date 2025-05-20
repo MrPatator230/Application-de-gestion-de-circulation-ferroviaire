@@ -87,7 +87,7 @@ export default function Sidebar() {
             </Link>
 
             <Link 
-              href="/admin/type-horaires" 
+              href="/admin/gestion-horaires" 
               className={`sncf-nav-link ${currentPath === '/admin/gestion-horaires' ? 'active' : ''}`}
             >
               <span className="material-icons">today</span>

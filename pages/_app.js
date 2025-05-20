@@ -18,6 +18,7 @@ function AppWrapper({ children }) {
 export default function MyApp({ Component, pageProps }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [role, setRole] = useState(null); // 'admin' or 'client'
+  const [user, setUser] = useState(null);
   const router = useRouter();
 
   // Initialize test data and load scripts
@@ -61,13 +62,20 @@ export default function MyApp({ Component, pageProps }) {
     }
   }, []);
 
-  // Check authentication
+  // Check authentication and load user data
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     const storedRole = localStorage.getItem('userRole');
-    if (token && storedRole) {
+    const storedUsername = localStorage.getItem('username');
+    if (token && storedRole && storedUsername) {
       setIsAuthenticated(true);
       setRole(storedRole);
+      // Load user details from localStorage users list
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const currentUser = users.find(u => u.username === storedUsername);
+      if (currentUser) {
+        setUser(currentUser);
+      }
     }
   }, []);
 
@@ -78,6 +86,7 @@ export default function MyApp({ Component, pageProps }) {
       localStorage.setItem('username', username);
       setIsAuthenticated(true);
       setRole('admin');
+      setUser({ username, role: 'admin' });
       router.push('/admin');
       return true;
     }
@@ -90,6 +99,7 @@ export default function MyApp({ Component, pageProps }) {
       localStorage.setItem('username', username);
       setIsAuthenticated(true);
       setRole('client');
+      setUser(user);
       router.push('/client');
       return true;
     }
@@ -102,13 +112,15 @@ export default function MyApp({ Component, pageProps }) {
     if (users.find(u => u.username === username)) {
       return false;
     }
-    users.push({ username, password });
+    const newUser = { username, password, role: 'client', name: '', email: '', phone: '' };
+    users.push(newUser);
     localStorage.setItem('users', JSON.stringify(users));
     localStorage.setItem('authToken', 'dummy-token');
     localStorage.setItem('userRole', 'client');
     localStorage.setItem('username', username);
     setIsAuthenticated(true);
     setRole('client');
+    setUser(newUser);
     router.push('/client');
     return true;
   };
@@ -119,13 +131,19 @@ export default function MyApp({ Component, pageProps }) {
     localStorage.removeItem('username');
     setIsAuthenticated(false);
     setRole(null);
+    setUser(null);
     router.push('/login');
   };
 
   return (
     <>
-      <Head />
-      <AuthContext.Provider value={{ isAuthenticated, role, login, logout, register }}>
+      <Head>
+        <title>SNCF Gestion</title>
+        <meta name="description" content="Gestion des horaires et services SNCF" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <AuthContext.Provider value={{ isAuthenticated, role, user, setUser, login, logout, register }}>
         <SettingsProvider>
           <AppWrapper>
             <Component {...pageProps} />
