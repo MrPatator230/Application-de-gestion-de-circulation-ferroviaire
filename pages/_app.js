@@ -1,6 +1,7 @@
 // Import styles
 import 'bootstrap/dist/css/bootstrap.min.css';
-import '../styles/globals.css';
+import '../styles/globals.css'
+import '../styles/operatorColors.css'
 
 // Import dependencies
 import { createContext, useState, useEffect } from 'react';

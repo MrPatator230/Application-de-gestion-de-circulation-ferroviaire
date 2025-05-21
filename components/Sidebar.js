@@ -74,6 +74,19 @@ export default function Sidebar() {
               <span className="material-icons">settings</span>
               <span>Matériels Roulants</span>
             </Link>
+            <Link 
+              href="/admin/billetique.js" 
+              className={`sncf-nav-link ${currentPath === '/admin/billetique' ? 'active' : ''}`}
+            >
+              <div><span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--primary-color)" width="24" aria-hidden="true" data-testid="icon-order" 
+              focusable="false" class="jsx-7fe9084330cc5140">
+                <path fill-rule="evenodd" d="M18.581 1.705l1.185 1.186c-.006.006-.015.006-.022.013-.143.143-.16.392-.015.534l2.258 2.265c.142.14.391.125.533-.018.008-.006.01-.014.014-.02l1.107 1.11c.479.478.479 1.251 0 1.73L8.492 23.643a1.221 1.221 0 0 1-1.73-.004l-5.06-5.066L18.58 1.705zM15.508.357a1.221 1.221 0 0 1 1.73.004l.118.115L.473 17.342l-.116-.116a1.227 1.227 0 0 1 0-1.732z" class="jsx-7fe9084330cc5140"></path>
+                </svg>
+                 </span> 
+                 
+              <span>Gestion de la Billetique</span>
+              </div>
+            </Link>
           </div>
 
           <div className="sncf-nav-section">

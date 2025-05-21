@@ -7,6 +7,7 @@ import DashboardWidget from '../../components/admin/DashboardWidget';
 import RecentStats from '../../components/admin/RecentStats';
 import ActivityFeed from '../../components/admin/ActivityFeed';
 
+
 export default function Admin() {
   const { isAuthenticated } = useContext(AuthContext);
   const router = useRouter();
@@ -161,6 +162,7 @@ export default function Admin() {
           </div>
         </div>
       </main>
+       
     </div>
   );
 }

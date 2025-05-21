@@ -3,6 +3,20 @@
   "companySlogan": "Le transport ferroviaire simplifié",
   "companyDescription": "Description de la société ferroviaire...",
   "primaryColor": "#245b28",
-  "secondaryColor": "#6c757d",
-  "appName": "Ferrovia Gestion | Mobigo BFC"
+  "secondaryColor": "#9fbd0a",
+  "accentColor": "#c1144d",
+  "appName": "Ferrovia Gestion | Mobigo BFC",
+  "logoUrl": "/images/logo-ter-hdf.svg",
+  "faviconUrl": "/favicon.ico",
+  "fontFamily": "Inter",
+  "buttonStyle": "rounded",
+  "headerStyle": "default",
+  "footerContent": "© 2024 Ma Société Ferroviaire",
+  "footerRegions": [
+    {
+      "name": "Bourgogne - Franche-Comté",
+      "link": "https://ter.sncf.com/bourgogne-franche-comte"
+    }
+  ],
+  "customCss": ""
 }
