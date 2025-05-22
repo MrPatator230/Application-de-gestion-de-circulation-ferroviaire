@@ -1,13 +1,15 @@
 import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
-import { AuthContext } from './_app';
+import { AuthContext } from '../src/contexts/AuthContext';
 import TrainVisualSlider from '../components/TrainVisualSlider';
+import modalStyles from './modal.module.css';
 import { 
   formatDisplayDate, 
   formatDay,
   calculateDuration
 } from '../utils/dateUtils';
+import { getDelayedTime } from '../utils/scheduleUtils';
 
 // Mapping des jours en français vers l'anglais (utilisé uniquement pour le filtrage)
 const DAYS_MAPPING = {
@@ -324,62 +326,101 @@ export default function Offers() {
                         <div 
                           className="offer-header"
                         >
-                          <div className="train-info">
+                          <div className="train-info" style={train.isCancelled ? { textDecoration: 'line-through', color: 'red' } : {}}>
                             <span className="train-type">{train.trainType}</span>
                             <span className="train-number">N° {train.trainNumber}</span>
                         </div>
-                        <div className="train-status">
-                          <span className="badge bg-success">À l'heure</span>
-                        </div>
-                      </div>
-                      
-                      <div className="offer-body">
-                        <div className="journey-times">
-                          <div className="departure">
-                            <div className="time">{train.displayDepartureTime}</div>
-                            <div className="station">{train.displayDepartureStation}</div>
+                          <div className="train-status">
+                            {train.isCancelled ? (
+                              <span className="badge bg-danger">Supprimé</span>
+                            ) : train.delayMinutes ? (
+                              <span className="badge bg-warning text-dark">
+                                Retard {train.delayMinutes} min
+                              </span>
+                            ) : (
+                              <span className="badge bg-success">À l'heure</span>
+                            )}
                           </div>
-                          <div className="journey-duration">
-                            <div className="duration-line"></div>
-                            <div className="duration-time">
-                              {calculateDuration(train.displayDepartureTime, train.displayArrivalTime)}
-                            </div>
-                          </div>
-                          <div className="arrival">
-                            <div className="time">{train.displayArrivalTime}</div>
-                            <div className="station">{train.displayArrivalStation}</div>
-                          </div>
-                        </div>
-                        {train.servedStations && train.servedStations.length > 0 && (
-                          <div className="via-stations">
-                            <span className="material-icons">route</span>
-                            Gares desservies : {train.servedStations.map(s => s.name).join(', ')}
-                          </div>
-                        )}
-                        <div className="quai-display mt-2">
-                          Quai: {train.track || '-'}
-                        </div>
-                      </div>
-                      <div className="offer-actions">
-                        <button 
-                          className="btn btn-primary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handlePurchaseTicket(train);
-                          }}
-                        >
-                          Acheter un billet
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                ) : (
-                  <div className="alert alert-info">
-                    Aucun train ne circule ce jour.
-                  </div>
-                )}
-              </div>
+                       </div>
+                       
+                       <div className="offer-body" style={train.isCancelled ? { textDecoration: 'line-through', color: 'red' } : {}}>
+                         <div className="journey-times">
+                           <div className="departure">
+                           <div className="time">
+                             {train.isCancelled ? (
+                               train.displayDepartureTime
+                             ) : train.delayMinutes ? (
+                               <>
+                                 <div className="delayed-time">
+                                   {getDelayedTime(train.displayDepartureTime, train.delayMinutes)}
+                                 </div>
+                                 <div className="original-time">
+                                   {train.displayDepartureTime}
+                                 </div>
+                               </>
+                             ) : (
+                               train.displayDepartureTime
+                             )}
+                           </div>
+                           <div className="station">{train.displayDepartureStation}</div>
+                         </div>
+                         <div className="journey-duration">
+                           <div className="duration-line"></div>
+                           <div className="duration-time">
+                             {calculateDuration(train.displayDepartureTime, train.displayArrivalTime)}
+                           </div>
+                         </div>
+                         <div className="arrival">
+                           <div className="time">
+                             {train.isCancelled ? (
+                               train.displayArrivalTime
+                             ) : train.delayMinutes ? (
+                               <>
+                                 <div className="delayed-time">
+                                   {getDelayedTime(train.displayArrivalTime, train.delayMinutes)}
+                                 </div>
+                                 <div className="original-time">
+                                   {train.displayArrivalTime}
+                                 </div>
+                               </>
+                             ) : (
+                               train.displayArrivalTime
+                             )}
+                           </div>
+                           <div className="station">{train.displayArrivalStation}</div>
+                         </div>
+                         </div>
+                         {train.servedStations && train.servedStations.length > 0 && (
+                           <div className="via-stations">
+                             <span className="material-icons">route</span>
+                             Gares desservies : {train.servedStations.map(s => s.name).join(', ')}
+                           </div>
+                         )}
+                         <div className="quai-display mt-2">
+                           Quai: {train.track || '-'}
+                         </div>
+                       </div>
+                       <div className="offer-actions">
+                         <button 
+                           className={`btn ${train.isCancelled ? 'btn-secondary disabled' : 'btn-primary'}`}
+                           disabled={train.isCancelled}
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             handlePurchaseTicket(train);
+                           }}
+                         >
+                           Acheter un billet
+                         </button>
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+                 ) : (
+                   <div className="alert alert-info">
+                     Aucun train ne circule ce jour.
+                   </div>
+                 )}
+               </div>
 
               {/* Résultats Retour */}
               {searchResults.retour && (
@@ -458,90 +499,73 @@ export default function Offers() {
 
           {/* Modal des gares desservies */}
           {showStationsModal && selectedSchedule && (
-            <div 
-              className="modal show" 
-              tabIndex="-1" 
-              role="dialog" 
-              style={{ 
-                display: 'block', 
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                zIndex: 1050 
-              }}
-              onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                  setShowStationsModal(false);
-                }
-              }}
-            >
-              <div className="modal-dialog modal-lg" role="document">
-                <div className="modal-content">
-                  <div className="modal-header">
-                    <h5 className="modal-title">
-                      Liste des gares
-                      <div className="text-muted" style={{ fontSize: '0.9rem' }}>
-                        desservies par le train {selectedSchedule.trainType} {selectedSchedule.trainNumber}
-                      </div>
-                      <div className="text-muted" style={{ fontSize: '0.8rem' }}>
-                        Opéré par SNCF Voyageurs - {selectedSchedule.trainNumber}
-                      </div>
-                    </h5>
-                    <button 
-                      type="button" 
-                      className="btn-close" 
-                      onClick={() => setShowStationsModal(false)}
-                    ></button>
+            <div className={modalStyles.modalOverlay} onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowStationsModal(false);
+              }
+            }}>
+              <div className={modalStyles.stationsModal}>
+                <div className={modalStyles.stationsModalHeader}>
+                  <div>
+                    <h3>Liste des gares</h3>
+                    <p>desservies par le train {selectedSchedule.trainType} {selectedSchedule.trainNumber}</p>
+                    <p>Opéré par SNCF Voyageurs - {selectedSchedule.trainNumber}</p>
                   </div>
-                  <div className="modal-body" style={{ backgroundColor: '#e8f5e9' }}>
-                    {/* Show train visual slider */}
+                  <button className={modalStyles.closeButton} onClick={() => setShowStationsModal(false)}>×</button>
+                </div>
+                <div className={modalStyles.stationsModalContent}>
+                  {selectedSchedule.composition && selectedSchedule.composition.length > 0 && (
                     <div className="mb-4">
                       <TrainVisualSlider
                         trainName={`${selectedSchedule.trainType} ${selectedSchedule.trainNumber}`}
-                        rollingStockFileName={selectedSchedule.rollingStockFileName}
+                        composition={selectedSchedule.composition}
                       />
                     </div>
-                    <div className="stations-list">
-                      <div className="station-row header">
-                        <div className="time">Départ</div>
-                        <div className="station">Gare</div>
-                        <div className="track">Voie</div>
+                  )}
+                  <div className={modalStyles.stationsGrid}>
+                    <div className={modalStyles.stationsHeader}>
+                      <div>Départ</div>
+                      <div>Gare</div>
+                      <div>Voie</div>
+                    </div>
+                    {/* Gare de départ */}
+                    <div className={modalStyles.stationRow}>
+                      <div className={modalStyles.stationTime}>{selectedSchedule.departureTime}</div>
+                      <div className={modalStyles.stationName}>
+                        <span className={modalStyles.stationDot}></span>
+                        {selectedSchedule.departureStation}
                       </div>
-
-                      {/* Gare de départ */}
-                      <div className="station-row">
-                        <div className="time">{selectedSchedule.departureTime}</div>
-                        <div className="station">
-                          <div className="station-dot"></div>
-                          {selectedSchedule.departureStation}
-                        </div>
-                        <div className="track">-</div>
+                      <div className={modalStyles.stationTrack}>
+                        {selectedSchedule.trackAssignments?.[selectedSchedule.departureStation] || selectedSchedule.track || '-'}
                       </div>
+                    </div>
 
-                      {/* Gares desservies */}
-                      {selectedSchedule.servedStations.map((station, index) => {
-                        const stationName = station.name || station;
-                        const quai = trackAssignments[selectedSchedule.id]?.[stationName] || '-';
-                        return (
-                          <div key={index} className="station-row">
-                            <div className="time">{station.departureTime}</div>
-                            <div className="station">
-                              <div className="station-dot"></div>
-                              {stationName}
-                            </div>
-                            <div className="track">
-                              {quai}
-                            </div>
+                    {/* Gares desservies */}
+                    {selectedSchedule.servedStations && selectedSchedule.servedStations.map((station, index) => {
+                      const stationName = typeof station === 'object' ? station.name : station;
+                      const stationTime = typeof station === 'object' ? station.departureTime : null;
+                      const quai = selectedSchedule.trackAssignments?.[stationName] || selectedSchedule.track || '-';
+                      return (
+                        <div key={index} className={modalStyles.stationRow}>
+                          <div className={modalStyles.stationTime}>{stationTime || '-'}</div>
+                          <div className={modalStyles.stationName}>
+                            <span className={modalStyles.stationDot}></span>
+                            {stationName}
                           </div>
-                        );
-                      })}
-
-                      {/* Gare d'arrivée */}
-                      <div className="station-row">
-                        <div className="time">{selectedSchedule.arrivalTime}</div>
-                        <div className="station">
-                          <div className="station-dot"></div>
-                          {selectedSchedule.arrivalStation}
+                          <div className={modalStyles.stationTrack}>{quai}</div>
                         </div>
-                        <div className="track">-</div>
+                      );
+                    })}
+
+                    {/* Gare d'arrivée */}
+                    <div className={modalStyles.stationRow}>
+                      <div className={modalStyles.stationTime}>{selectedSchedule.arrivalTime}</div>
+                      <div className={modalStyles.stationName}>
+                        <span className={modalStyles.stationDot}></span>
+                        {selectedSchedule.arrivalStation}
+                      </div>
+                      <div className={modalStyles.stationTrack}>
+                        {selectedSchedule.trackAssignments?.[selectedSchedule.arrivalStation] || selectedSchedule.track || '-'}
                       </div>
                     </div>
                   </div>
@@ -640,6 +664,27 @@ export default function Offers() {
           .time {
             font-weight: 600;
             color: #000066;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+          }
+
+          .delayed-time {
+            color: #fd7e14;
+            font-weight: 600;
+            font-size: 1rem;
+          }
+
+          .original-time {
+            text-decoration: line-through;
+            color: #666;
+            font-size: 0.7rem;
+            margin-top: 2px;
+          }
+
+          .badge.bg-warning {
+            background-color: #fd7e14 !important;
+            color: white !important;
           }
 
           .station {

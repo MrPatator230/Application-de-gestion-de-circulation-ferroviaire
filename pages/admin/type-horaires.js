@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import Sidebar from '../../components/Sidebar';
-import { AuthContext } from '../_app';
+import { AuthContext } from '../../src/contexts/AuthContext';
 
 const STATUS_TYPES = [
   { value: 'on_time', label: 'À l\'heure' },

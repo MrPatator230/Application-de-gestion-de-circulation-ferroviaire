@@ -3,7 +3,7 @@ import { SettingsContext } from '../contexts/SettingsContext';
 import { FaFacebookF, FaTwitter, FaInstagram, FaYoutube } from 'react-icons/fa6';
 
 export default function Footer() {
-  const { footerRegions } = useContext(SettingsContext);
+  const { footerRegions, logoUrl } = useContext(SettingsContext);
 
   const handleRegionChange = (e) => {
     const selectedLink = e.target.value;
@@ -66,8 +66,7 @@ export default function Footer() {
           {/* Logos */}
           <div className="col-md-4">
             <div className="d-flex justify-content-end align-items-center gap-3">
-              <img src="/images/sncf-logo.png" alt="SNCF Logo" style={{ height: '32px' }} />
-              <img src="/images/logo-ter-mobigo.svg" alt="Mobigo Logo" style={{ height: '32px' }} />
+              <img src={logoUrl || "/images/logo-ter-mobigo.svg"} alt="Selected TER Logo" style={{ height: '32px' }} />
             </div>
           </div>
         </div>

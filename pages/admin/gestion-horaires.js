@@ -1,14 +1,15 @@
-
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import Sidebar from '../../components/Sidebar';
 import { getAllSchedules, updateSchedule } from '../../utils/scheduleUtils';
+import { useTrackAssignments } from '../../src/contexts/TrackAssignmentContext';
 
 export default function GestionHoraires() {
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showQuaiModal, setShowQuaiModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const { trackAssignments, updateTrackAssignment } = useTrackAssignments();
   const [quaiAssignments, setQuaiAssignments] = useState({});
 
   useEffect(() => {
@@ -28,31 +29,20 @@ export default function GestionHoraires() {
   };
 
   const handleReset = () => {
-    // Reset delays and cancellations for all schedules
     schedules.forEach(schedule => {
       updateSchedule(schedule.id, { delayMinutes: 0, isCancelled: false });
     });
     setSchedules(getAllSchedules());
   };
 
-  if (loading) return <Layout><div><p>Chargement...</p></div></Layout>;
-
   const handleQuaiChange = (stationName, value) => {
-    setQuaiAssignments(prev => {
-      const newAssignments = { ...prev, [stationName]: value };
-      if (selectedSchedule) {
-        const updatedSchedule = {
-          ...selectedSchedule,
-          trackAssignments: newAssignments,
-        };
-        updateSchedule(selectedSchedule.id, updatedSchedule);
-        setSchedules(prevSchedules =>
-          prevSchedules.map(s => (s.id === selectedSchedule.id ? updatedSchedule : s))
-        );
-        setSelectedSchedule(updatedSchedule);
-      }
-      return newAssignments;
-    });
+    if (selectedSchedule) {
+      updateTrackAssignment(selectedSchedule.id, stationName, value);
+      setQuaiAssignments(prev => ({
+        ...prev,
+        [stationName]: value
+      }));
+    }
   };
 
   const closeQuaiModal = () => {
@@ -60,6 +50,8 @@ export default function GestionHoraires() {
     setSelectedSchedule(null);
     setQuaiAssignments({});
   };
+
+  if (loading) return <Layout><div><p>Chargement...</p></div></Layout>;
 
   return (
     <div id="wrapper" style={{ display: 'flex', minHeight: '100vh' }}>
@@ -97,16 +89,19 @@ export default function GestionHoraires() {
                     <button
                       className="btn btn-sm btn-primary"
                       onClick={() => {
-                        // Prepare quai assignments for all stations of the schedule
                         const assignments = {};
-                        if (schedule.departureStation) assignments[schedule.departureStation] = schedule.trackAssignments?.[schedule.departureStation] || '';
+                        if (schedule.departureStation) {
+                          assignments[schedule.departureStation] = trackAssignments[schedule.id]?.[schedule.departureStation] || '';
+                        }
                         if (schedule.servedStations) {
                           schedule.servedStations.forEach(station => {
                             const stationName = typeof station === 'object' ? station.name : station;
-                            assignments[stationName] = schedule.trackAssignments?.[stationName] || '';
+                            assignments[stationName] = trackAssignments[schedule.id]?.[stationName] || '';
                           });
                         }
-                        if (schedule.arrivalStation) assignments[schedule.arrivalStation] = schedule.trackAssignments?.[schedule.arrivalStation] || '';
+                        if (schedule.arrivalStation) {
+                          assignments[schedule.arrivalStation] = trackAssignments[schedule.id]?.[schedule.arrivalStation] || '';
+                        }
                         setQuaiAssignments(assignments);
                         setSelectedSchedule(schedule);
                         setShowQuaiModal(true);
@@ -132,44 +127,43 @@ export default function GestionHoraires() {
                   </td>
                 </tr>
               ))}
-
-              {showQuaiModal && selectedSchedule && (
-                <div className="modal d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                  <div className="modal-dialog" role="document">
-                    <div className="modal-content">
-                      <div className="modal-header">
-                        <h5 className="modal-title">Attribution des quais - Train {selectedSchedule.trainNumber}</h5>
-                        <button type="button" className="btn-close" aria-label="Close" onClick={closeQuaiModal}></button>
-                      </div>
-                      <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-                        <form>
-                          {[selectedSchedule.departureStation]
-                            .concat(selectedSchedule.servedStations?.map(s => (typeof s === 'object' ? s.name : s)) || [])
-                            .concat([selectedSchedule.arrivalStation])
-                            .map((stationName, idx) => (
-                              <div key={idx} className="mb-3">
-                                <label className="form-label">{stationName}</label>
-                                <input
-                                  type="text"
-                                  className="form-control"
-                                  value={quaiAssignments[stationName] || ''}
-                                  onChange={e => handleQuaiChange(stationName, e.target.value)}
-                                  placeholder="Quai"
-                                />
-                              </div>
-                            ))}
-                        </form>
-                      </div>
-                      <div className="modal-footer">
-                        <button type="button" className="btn btn-secondary" onClick={closeQuaiModal}>Fermer</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
             </tbody>
           </table>
+
+          {showQuaiModal && selectedSchedule && (
+            <div className="modal d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+              <div className="modal-dialog" role="document">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <h5 className="modal-title">Attribution des quais - Train {selectedSchedule.trainNumber}</h5>
+                    <button type="button" className="btn-close" aria-label="Close" onClick={closeQuaiModal}></button>
+                  </div>
+                  <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                    <form>
+                      {[selectedSchedule.departureStation]
+                        .concat(selectedSchedule.servedStations?.map(s => (typeof s === 'object' ? s.name : s)) || [])
+                        .concat([selectedSchedule.arrivalStation])
+                        .map((stationName, idx) => (
+                          <div key={idx} className="mb-3">
+                            <label className="form-label">{stationName}</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={quaiAssignments[stationName] || ''}
+                              onChange={e => handleQuaiChange(stationName, e.target.value)}
+                              placeholder="Quai"
+                            />
+                          </div>
+                        ))}
+                    </form>
+                  </div>
+                  <div className="modal-footer">
+                    <button type="button" className="btn btn-secondary" onClick={closeQuaiModal}>Fermer</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <style jsx>{`
             .container {

@@ -1,5 +1,5 @@
 import { useContext, useState, useEffect } from 'react';
-import { AuthContext } from '../_app';
+import { AuthContext } from '../../src/contexts/AuthContext';
 import { useRouter } from 'next/router';
 import ClientSidebar from '../../components/client/ClientSidebar';
 import ReservationList from '../../components/client/ReservationList';

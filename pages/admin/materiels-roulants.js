@@ -1,20 +1,17 @@
 import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import Sidebar from '../../components/Sidebar';
-import { AuthContext } from '../_app';
+import { AuthContext } from '../../src/contexts/AuthContext';
 
 export default function MaterielsRoulants() {
   const { role, isAuthenticated } = useContext(AuthContext);
   const router = useRouter();
 
-  const [regions, setRegions] = useState([]);
-  const [selectedRegion, setSelectedRegion] = useState('');
-  const [newRegionName, setNewRegionName] = useState('');
   const [materiels, setMateriels] = useState([]);
-  const [filteredMateriels, setFilteredMateriels] = useState([]);
   const [editingMaterielId, setEditingMaterielId] = useState(null);
   const [imageFile, setImageFile] = useState(null);
-  const [imageName, setImageName] = useState('');
+  const [name, setName] = useState('');
+  const [type, setType] = useState('');
 
   useEffect(() => {
     if (!isAuthenticated || role !== 'admin') {
@@ -23,105 +20,56 @@ export default function MaterielsRoulants() {
   }, [isAuthenticated, role, router]);
 
   useEffect(() => {
-    const savedRegions = localStorage.getItem('materielsRegions');
-    if (savedRegions) {
-      setRegions(JSON.parse(savedRegions));
-    }
     const savedMateriels = localStorage.getItem('materielsRoulants');
     if (savedMateriels) {
       setMateriels(JSON.parse(savedMateriels));
     }
   }, []);
 
-  useEffect(() => {
-    if (selectedRegion) {
-      setFilteredMateriels(materiels.filter(m => m.region === selectedRegion));
-    } else {
-      setFilteredMateriels([]);
-    }
-  }, [materiels, selectedRegion]);
-
-  const saveRegions = (newRegions) => {
-    setRegions(newRegions);
-    localStorage.setItem('materielsRegions', JSON.stringify(newRegions));
-  };
-
   const saveMateriels = (newMateriels) => {
     setMateriels(newMateriels);
     localStorage.setItem('materielsRoulants', JSON.stringify(newMateriels));
   };
 
-  const handleAddRegion = () => {
-    const trimmedName = newRegionName.trim();
-    if (!trimmedName) {
-      alert('Le nom de la région ne peut pas être vide.');
-      return;
-    }
-    if (regions.includes(trimmedName)) {
-      alert('Cette région existe déjà.');
-      return;
-    }
-    const newRegions = [...regions, trimmedName];
-    saveRegions(newRegions);
-    setNewRegionName('');
-    setSelectedRegion(trimmedName);
-  };
-
-  const handleDeleteRegion = (regionName) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer la région "${regionName}" et tous ses matériels roulants ?`)) {
-      const newRegions = regions.filter(r => r !== regionName);
-      saveRegions(newRegions);
-      const newMateriels = materiels.filter(m => m.region !== regionName);
-      saveMateriels(newMateriels);
-      if (selectedRegion === regionName) {
-        setSelectedRegion('');
-      }
-    }
-  };
-
   const handleFileChange = (e) => {
     setImageFile(e.target.files[0]);
-    setImageName(e.target.files[0]?.name || '');
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!selectedRegion) {
-      alert('Veuillez sélectionner une région.');
-      return;
-    }
-    if (!imageName.trim() || (editingMaterielId === null && !imageFile)) {
-      alert('Veuillez saisir un nom pour le fichier et choisir une image si vous ajoutez un nouveau matériel.');
+    if (!name.trim() || !type.trim() || (editingMaterielId === null && !imageFile)) {
+      alert('Veuillez remplir tous les champs et ajouter une image.');
       return;
     }
 
     const processSave = (imageData) => {
       if (editingMaterielId !== null) {
-        // Update existing materiel
         const updatedMateriels = materiels.map(m => {
           if (m.id === editingMaterielId) {
             return {
               ...m,
-              region: selectedRegion,
-              imageName: imageName.trim(),
+              name: name.trim(),
+              type: type.trim(),
               imageData: imageData || m.imageData,
+              imageName: `${name.toLowerCase().replace(/\s+/g, '-')}.png`
             };
           }
           return m;
         });
         saveMateriels(updatedMateriels);
       } else {
-        // Add new materiel
         const newMateriel = {
           id: Date.now(),
-          region: selectedRegion,
+          name: name.trim(),
+          type: type.trim(),
           imageData,
-          imageName: imageName.trim(),
+          imageName: `${name.toLowerCase().replace(/\s+/g, '-')}.png`
         };
         saveMateriels([...materiels, newMateriel]);
       }
       setImageFile(null);
-      setImageName('');
+      setName('');
+      setType('');
       setEditingMaterielId(null);
       e.target.reset();
     };
@@ -133,7 +81,6 @@ export default function MaterielsRoulants() {
       };
       reader.readAsDataURL(imageFile);
     } else {
-      // No new image file, keep existing imageData
       processSave(null);
     }
   };
@@ -145,15 +92,16 @@ export default function MaterielsRoulants() {
       if (editingMaterielId === id) {
         setEditingMaterielId(null);
         setImageFile(null);
-        setImageName('');
+        setName('');
+        setType('');
       }
     }
   };
 
   const handleEdit = (materiel) => {
     setEditingMaterielId(materiel.id);
-    setSelectedRegion(materiel.region);
-    setImageName(materiel.imageName);
+    setName(materiel.name);
+    setType(materiel.type);
     setImageFile(null);
   };
 
@@ -161,110 +109,158 @@ export default function MaterielsRoulants() {
     <div id="wrapper" style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar />
       <div id="content-wrapper" className="d-flex flex-column flex-grow-1">
-        <div id="content" className="container mt-4 flex-grow-1 d-flex">
-          <div style={{ width: '250px', marginRight: '1rem' }}>
-            <h2>Régions</h2>
-            <ul className="list-group mb-3">
-              {regions.map(region => (
-                <li
-                  key={region}
-                  className={`list-group-item d-flex justify-content-between align-items-center ${selectedRegion === region ? 'active' : ''}`}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => setSelectedRegion(region)}
-                >
-                  {region}
-                  <button
-                    className="btn btn-sm btn-danger"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteRegion(region);
-                    }}
-                  >
-                    Supprimer
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <div className="input-group">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Nouvelle région"
-                value={newRegionName}
-                onChange={(e) => setNewRegionName(e.target.value)}
-              />
-              <button className="btn btn-primary" onClick={handleAddRegion}>Ajouter</button>
-            </div>
+        <div id="content" className="container-fluid py-4">
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h1 className="h3 mb-0" style={{ color: 'var(--aura-primary)' }}>Gestion du Matériel Roulant</h1>
+            <button
+              onClick={() => {
+                setEditingMaterielId(null);
+                setName('');
+                setType('');
+                setImageFile(null);
+                document.getElementById('addMaterielForm').reset();
+              }}
+              className="btn"
+              style={{
+                backgroundColor: 'var(--aura-primary)',
+                color: 'white',
+                borderRadius: '25px',
+                padding: '0.5rem 1.5rem'
+              }}
+            >
+              Nouveau Matériel Roulant
+            </button>
           </div>
 
-          <div className="flex-grow-1">
-            <h1>Gestion des Matériels Roulants {selectedRegion && `- Région: ${selectedRegion}`}</h1>
-            {!selectedRegion ? (
-              <p>Veuillez sélectionner une région pour gérer ses matériels roulants.</p>
-            ) : (
-              <>
-                <form onSubmit={handleSubmit} className="mb-4">
-                  <div className="mb-3">
-                    <label htmlFor="imageName" className="form-label">Nom du fichier</label>
+          {/* Add/Edit Form */}
+          <div className="card shadow-sm mb-4">
+            <div className="card-body">
+              <form id="addMaterielForm" onSubmit={handleSubmit}>
+                <h2 className="h4 mb-4" style={{ color: 'var(--aura-primary)' }}>
+                  {editingMaterielId ? 'Modifier le Matériel Roulant' : 'Ajouter un Matériel Roulant'}
+                </h2>
+                <div className="row g-3 mb-4">
+                  <div className="col-md-6">
+                    <label className="form-label">Nom</label>
                     <input
                       type="text"
-                      id="imageName"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                       className="form-control"
-                      value={imageName}
-                      onChange={(e) => setImageName(e.target.value)}
                       required
                     />
                   </div>
-                  <div className="mb-3">
-                    <label htmlFor="imageFile" className="form-label">Image du Matériel Roulant {editingMaterielId !== null ? '(laisser vide pour garder l\'image actuelle)' : ''}</label>
+                  <div className="col-md-6">
+                    <label className="form-label">Type</label>
                     <input
-                      type="file"
-                      id="imageFile"
+                      type="text"
+                      value={type}
+                      onChange={(e) => setType(e.target.value)}
                       className="form-control"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      {...(editingMaterielId === null ? { required: true } : {})}
+                      required
                     />
                   </div>
-                  <button type="submit" className="btn btn-primary">{editingMaterielId !== null ? 'Modifier' : 'Ajouter'}</button>
-                  {editingMaterielId !== null && (
+                </div>
+                <div className="mb-4">
+                  <label className="form-label">
+                    Image {editingMaterielId && '(laisser vide pour garder l\'image actuelle)'}
+                  </label>
+                  <input
+                    type="file"
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="form-control"
+                    {...(editingMaterielId === null ? { required: true } : {})}
+                  />
+                </div>
+                <div className="d-flex justify-content-end gap-2">
+                  {editingMaterielId && (
                     <button
                       type="button"
-                      className="btn btn-secondary ms-2"
                       onClick={() => {
                         setEditingMaterielId(null);
+                        setName('');
+                        setType('');
                         setImageFile(null);
-                        setImageName('');
                       }}
+                      className="btn btn-outline-secondary"
+                      style={{ borderRadius: '25px' }}
                     >
                       Annuler
                     </button>
                   )}
-                </form>
+                  <button
+                    type="submit"
+                    className="btn"
+                    style={{
+                      backgroundColor: 'var(--aura-primary)',
+                      color: 'white',
+                      borderRadius: '25px'
+                    }}
+                  >
+                    {editingMaterielId ? 'Mettre à jour' : 'Ajouter'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
 
-                {filteredMateriels.length === 0 ? (
-                  <p>Aucun matériel roulant ajouté pour cette région.</p>
-                ) : (
-                  <div className="row">
-                    {filteredMateriels.map(materiel => (
-                      <div key={materiel.id} className="col-md-4 mb-4">
-                        <div className="card">
-                          <img src={materiel.imageData} alt={materiel.imageName} className="card-img-top" style={{ maxHeight: '200px', objectFit: 'contain' }} />
-                          <div className="card-body">
-                            <h5 className="card-title">{materiel.imageName}</h5>
-                            <button className="btn btn-warning btn-sm me-2" onClick={() => handleEdit(materiel)}>Modifier</button>
-                            <button className="btn btn-danger btn-sm" onClick={() => handleDelete(materiel.id)}>Supprimer</button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+          {/* Material List */}
+          <div className="row g-4">
+            {materiels.map(materiel => (
+              <div key={materiel.id} className="col-md-6 col-lg-4">
+                <div className="card h-100 shadow-sm">
+                  <div style={{ height: '200px', overflow: 'hidden', backgroundColor: '#f8f9fa' }}>
+                    <img
+                      src={materiel.imageData}
+                      alt={materiel.name}
+                      className="w-100 h-100"
+                      style={{ objectFit: 'contain' }}
+                    />
                   </div>
-                )}
-              </>
-            )}
+                  <div className="card-body">
+                    <h3 className="h5 card-title" style={{ color: 'var(--aura-primary)' }}>{materiel.name}</h3>
+                    <p className="card-text text-muted">Type: {materiel.type}</p>
+                    <div className="d-flex justify-content-end gap-2">
+                      <button
+                        onClick={() => handleEdit(materiel)}
+                        className="btn btn-outline-warning"
+                        style={{ borderRadius: '25px' }}
+                      >
+                        Modifier
+                      </button>
+                      <button
+                        onClick={() => handleDelete(materiel.id)}
+                        className="btn btn-outline-danger"
+                        style={{ borderRadius: '25px' }}
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .btn:focus {
+          box-shadow: 0 0 0 0.25rem rgba(0, 85, 164, 0.25);
+        }
+        .card {
+          border: none;
+          transition: transform 0.2s;
+        }
+        .card:hover {
+          transform: translateY(-5px);
+        }
+        .form-control:focus {
+          border-color: var(--aura-primary);
+          box-shadow: 0 0 0 0.25rem rgba(0, 85, 164, 0.25);
+        }
+      `}</style>
     </div>
   );
 }

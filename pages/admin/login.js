@@ -1,12 +1,12 @@
 import { useState, useContext } from 'react';
 import { useRouter } from 'next/router';
-import { AuthContext } from '../_app';
+import { AuthContext } from '../../src/contexts/AuthContext';
 
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login, isAuthenticated, role } = useContext(AuthContext);
+  const {login, isAuthenticated, role } = useContext(AuthContext);
   const router = useRouter();
 
   if (isAuthenticated) {

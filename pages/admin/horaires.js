@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import Sidebar from '../../components/Sidebar';
-import { AuthContext } from '../_app';
+import { AuthContext } from '../../src/contexts/AuthContext';
 import { getAllSchedules, addSchedule, updateSchedule, deleteSchedule } from '../../utils/scheduleUtils';
 
 const TRAIN_TYPES = ['TER', 'TGV', 'Intercités', 'Trains MOBIGO'];
@@ -38,7 +38,6 @@ export default function Horaires() {
   const [arrivalTime, setArrivalTime] = useState('');
   const [departureTime, setDepartureTime] = useState('');
   const [trainType, setTrainType] = useState(TRAIN_TYPES[0]);
-  const [rollingStockFileName, setRollingStockFileName] = useState('');
   const [servedStations, setServedStations] = useState([{ name: '', arrivalTime: '', departureTime: '' }]);
   const [joursCirculation, setJoursCirculation] = useState([]);
   const [folderId, setFolderId] = useState(null);
@@ -109,13 +108,8 @@ export default function Horaires() {
     setArrivalTime('');
     setDepartureTime('');
     setTrainType(TRAIN_TYPES[0]);
-    setRollingStockFileName('');
     setServedStations([{ name: '', arrivalTime: '', departureTime: '' }]);
     setJoursCirculation([]);
-  };
-
-  const handleRollingStockChange = (e) => {
-    setRollingStockFileName(e.target.value);
   };
 
   const handleJoursCirculationChange = (day) => {
@@ -130,10 +124,10 @@ export default function Horaires() {
     e.preventDefault();
 
     // Validate required fields
-if (!trainNumber || !departureStation || !arrivalStation || !arrivalTime || !departureTime || !trainType || !joursCirculation || joursCirculation.length === 0) {
-  alert('Veuillez remplir tous les champs obligatoires, y compris les jours de circulation.');
-  return;
-}
+    if (!trainNumber || !departureStation || !arrivalStation || !arrivalTime || !departureTime || !trainType || !joursCirculation || joursCirculation.length === 0) {
+      alert('Veuillez remplir tous les champs obligatoires, y compris les jours de circulation.');
+      return;
+    }
 
     // Filtrer les gares desservies valides
     const servedStationsList = servedStations.filter(s => 
@@ -164,7 +158,8 @@ if (!trainNumber || !departureStation || !arrivalStation || !arrivalTime || !dep
       arrivalTime,
       departureTime,
       trainType,
-      rollingStockFileName: rollingStockFileName || null,
+      rollingStockFileName: null,
+      composition: editingSchedule?.composition || [],
       servedStations: servedStationsList,
       joursCirculation,
     };
@@ -301,7 +296,14 @@ if (!trainNumber || !departureStation || !arrivalStation || !arrivalTime || !dep
                         <td>{schedule.arrivalStation}</td>
                         <td>{schedule.departureTime}</td>
                         <td>{schedule.trainType}</td>
-                        <td>{schedule.rollingStockFileName || 'N/A'}</td>
+                        <td>
+                          <a 
+                            href="/admin/compositions-trains" 
+                            className={schedule.rollingStockFileName ? "text-primary" : "text-muted"}
+                          >
+                            {schedule.rollingStockFileName ? "Voir la composition" : "Définir la composition"}
+                          </a>
+                        </td>
                         <td>{schedule.joursCirculation ? schedule.joursCirculation.join(', ') : '-'}</td>
                         <td>{folders.find(f => f.id === scheduleFolderMap[schedule.id])?.name || '-'}</td>
                         <td>
@@ -317,9 +319,8 @@ if (!trainNumber || !departureStation || !arrivalStation || !arrivalTime || !dep
                               setArrivalTime(schedule.arrivalTime);
                               setDepartureTime(schedule.departureTime);
                               setTrainType(schedule.trainType);
-                              setRollingStockFileName(schedule.rollingStockFileName || '');
-setServedStations(schedule.servedStations && schedule.servedStations.length > 0 ? schedule.servedStations : [{ name: '', arrivalTime: '', departureTime: '' }]);
-setJoursCirculation(schedule.joursCirculation || []);
+                              setServedStations(schedule.servedStations && schedule.servedStations.length > 0 ? schedule.servedStations : [{ name: '', arrivalTime: '', departureTime: '' }]);
+                              setJoursCirculation(schedule.joursCirculation || []);
                               setFolderId(scheduleFolderMap[schedule.id] || null);
                               setShowModal(true);
                             }}
@@ -450,32 +451,10 @@ setJoursCirculation(schedule.joursCirculation || []);
                         </select>
                       </div>
                       <div className="mb-3">
-                        <label htmlFor="rollingStockFile" className="form-label">Matériel Roulant (import fichier)</label>
-                        <input
-                          type="file"
-                          id="rollingStockFile"
-                          className="form-control"
-                          onChange={(e) => {
-                            // No actual file handling implemented, so just ignore or add logic if needed
-                          }}
-                          accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt"
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label htmlFor="rollingStockSelect" className="form-label">Matériel Roulant (choisir)</label>
-                        <select
-                          id="rollingStockSelect"
-                          className="form-select"
-                          value={rollingStockFileName}
-                          onChange={handleRollingStockChange}
-                        >
-                          <option value="">-- Aucun --</option>
-                          {materielsRoulants.map((materiel) => (
-                            <option key={materiel.id} value={materiel.imageName}>
-                              {materiel.imageName} ({materiel.region})
-                            </option>
-                          ))}
-                        </select>
+                        <p className="text-info">
+                          <span className="material-icons align-middle me-1">info</span>
+                          La composition du train peut être définie dans la section "Compositions Trains"
+                        </p>
                       </div>
                       <div className="mb-3">
                         <label className="form-label">Liste des Gares Desservies</label>
@@ -578,22 +557,15 @@ setJoursCirculation(schedule.joursCirculation || []);
                     <p><strong>Heure d'Arrivée:</strong> {selectedSchedule.arrivalTime}</p>
                     <p><strong>Heure de Départ:</strong> {selectedSchedule.departureTime}</p>
                     <p><strong>Type de Train:</strong> {selectedSchedule.trainType}</p>
-                    <p><strong>Matériel Roulant:</strong> {selectedSchedule.rollingStockFileName || 'N/A'}</p>
-                    {selectedSchedule.rollingStockFileName ? (() => {
-                      const materiel = materielsRoulants.find(m => m.imageName === selectedSchedule.rollingStockFileName);
-                      if (materiel) {
-                        return (
-                          <div className="mb-3">
-                            <img
-                              src={materiel.imageData}
-                              alt="Matériel Roulant"
-                              style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain' }}
-                            />
-                          </div>
-                        );
-                      }
-                      return null;
-                    })() : null}
+                          <p>
+                            <strong>Composition du Train:</strong>{' '}
+                            <a 
+                              href="/admin/compositions-trains" 
+                              className={selectedSchedule.composition && selectedSchedule.composition.length > 0 ? "text-primary" : "text-muted"}
+                            >
+                              {selectedSchedule.composition && selectedSchedule.composition.length > 0 ? "Voir la composition" : "Définir la composition"}
+                            </a>
+                          </p>
                     <div>
                       <strong>Gares Desservies:</strong>
                       {selectedSchedule.servedStations && selectedSchedule.servedStations.length > 0 ? (

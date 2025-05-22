@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import StationSearchForm from '../../components/StationSearchForm';
+import TrainVisualSlider from '../../components/TrainVisualSlider';
 import { calculateDuration } from '../../utils/dateUtils';
 import {
   getStationSchedules,
@@ -152,42 +153,53 @@ export default function StationSchedule() {
                         <div
                           className="schedule-row"
                           onClick={() => handleScheduleClick(schedule)}
-                          style={status.status === 'cancelled' ? { textDecoration: 'line-through', color: '#dc143c' } : {}}
+                          style={schedule.isCancelled ? { textDecoration: 'line-through', color: '#dc143c' } : {}}
                         >
-                          <div className="schedule-time" style={{ display: 'flex', flexDirection: 'column' }}>
-                            {showBadge && isDepartures && (
-                              <span className="delayed-time" style={{ order: 0, color: '#fd7e14' }}>
-                                {getStationTime(schedule, decodeURIComponent(station), 'departure', true)}
+                          <div className="schedule-time" style={schedule.isCancelled ? { textDecoration: 'line-through', color: '#dc143c' } : {}}>
+                            {schedule.isCancelled ? (
+                              <span className="cancelled-time">
+                                {getStationTime(schedule, decodeURIComponent(station), isDepartures ? 'departure' : 'arrival', false)}
+                              </span>
+                            ) : schedule.delayMinutes ? (
+                              <>
+                                <span className="delayed-time">
+                                  {getStationTime(schedule, decodeURIComponent(station), isDepartures ? 'departure' : 'arrival', true)}
+                                </span>
+                                <span className="original-time">
+                                  {getStationTime(schedule, decodeURIComponent(station), isDepartures ? 'departure' : 'arrival', false)}
+                                </span>
+                              </>
+                            ) : (
+                              <span>
+                                {getStationTime(schedule, decodeURIComponent(station), isDepartures ? 'departure' : 'arrival', false)}
                               </span>
                             )}
-                            {showBadge && isArrivals && (
-                              <span className="delayed-time" style={{ order: 0, color: '#fd7e14' }}>
-                                {getStationTime(schedule, decodeURIComponent(station), 'arrival', true)}
-                              </span>
-                            )}
-                            <span className={showBadge ? 'original-time' : ''} style={{ order: 1 }}>
-                              {getStationTime(schedule, decodeURIComponent(station), isDepartures ? 'departure' : 'arrival', false)}
-                            </span>
-                            
                           </div>
-                          <div className="schedule-destination">
+                          <div className="schedule-destination" style={schedule.isCancelled ? { textDecoration: 'line-through', color: '#dc143c' } : {}}>
                             {isDepartures ? schedule.arrivalStation : schedule.departureStation}
-                          {showBadge && (
+                            {schedule.isCancelled ? (
+                              <span className="badge bg-danger" style={{ marginLeft: '0.5rem' }}>
+                                Supprimé
+                              </span>
+                            ) : schedule.delayMinutes ? (
                               <span className="badge bg-warning" style={{ marginLeft: '0.5rem' }}>
-                                {badgeLabel}
-                              </span>)}
-                              
-                              {status.status === 'cancelled' && (
-                            <span className="badge bg-danger ml-2" style={{ marginLeft: '1rem' }}>
-                              Supprimé
-                            </span>
-                          )}</div>
-                          <div className="schedule-train">
+                                Retard {schedule.delayMinutes} min
+                              </span>
+                            ) : (
+                              <span className="badge bg-success" style={{ marginLeft: '0.5rem' }}>
+                                À l'heure
+                              </span>
+                            )}
+                          </div>
+                          <div className="schedule-train" style={schedule.isCancelled ? { textDecoration: 'line-through', color: '#dc143c' } : {}}>
                             <i className="icons-train mr-2" aria-hidden="true"></i>
                             Train {schedule.trainNumber}
                           </div>
                           <div className="schedule-track">
-                            Quai: {schedule.track || '-'}
+                            Quai: {isDepartures ? 
+                              (schedule.trackAssignments?.[schedule.departureStation] || schedule.track || '-') : 
+                              (schedule.trackAssignments?.[schedule.arrivalStation] || schedule.track || '-')
+                            }
                           </div>
                           
                            
@@ -221,6 +233,16 @@ export default function StationSchedule() {
                 <button className="close-button" onClick={() => setSelectedSchedule(null)}>×</button>
               </div>
               <div className="stations-modal-content">
+                {/* Train Visual Slider */}
+                {selectedSchedule.composition && selectedSchedule.composition.length > 0 && (
+                  <div className="train-visual mb-4">
+                    <TrainVisualSlider
+                      trainName={`${selectedSchedule.trainType} ${selectedSchedule.trainNumber}`}
+                      composition={selectedSchedule.composition}
+                    />
+                  </div>
+                )}
+
                 <div className="stations-grid">
                   <div className="stations-header">
                     <div>Départ</div>
@@ -228,22 +250,34 @@ export default function StationSchedule() {
                     <div>Voie</div>
                   </div>
                   {getAllStations(selectedSchedule).map((station, index) => (
-                    <div key={index} className={`station-row ${station.status.className}`}>
+                    <div key={index} className={`station-row ${selectedSchedule.isCancelled ? 'status-cancelled' : ''}`}>
                       <div className="station-time">
-                        {station.status.status === 'delayed' ? (
+                        {selectedSchedule.isCancelled ? (
+                          <div className="cancelled-time">{station.originalTime}</div>
+                        ) : selectedSchedule.delayMinutes ? (
                           <div className="delayed-times">
-                            <span className="delayed-new-time">{station.time}</span>
-                            {station.time !== station.originalTime && (
-                              <span className="delayed-original-time">{station.originalTime}</span>
-                            )}
+                            <span className="delayed-new-time">
+                              {getDelayedTime(station.originalTime, selectedSchedule.delayMinutes)}
+                            </span>
+                            <span className="delayed-original-time">
+                              {station.originalTime}
+                            </span>
                           </div>
                         ) : (
-                          station.time || '-'
+                          station.originalTime || '-'
                         )}
                       </div>
                       <div className="station-name">
                         <span className="station-dot"></span>
                         {station.name}
+                        {index === 0 && selectedSchedule.isCancelled && (
+                          <span className="badge bg-danger ms-2">Supprimé</span>
+                        )}
+                        {index === 0 && !selectedSchedule.isCancelled && selectedSchedule.delayMinutes > 0 && (
+                          <span className="badge bg-warning ms-2">
+                            Retard {selectedSchedule.delayMinutes} min
+                          </span>
+                        )}
                       </div>
                       <div className="station-track">{station.track}</div>
                     </div>
@@ -273,20 +307,8 @@ export default function StationSchedule() {
             margin-bottom: 1px;
           }
 
-          .schedule-item.status-cancelled .schedule-row {
-            position: relative;
-            color: #dc3545;
+          .schedule-item.status-cancelled {
             opacity: 0.8;
-          }
-
-          .schedule-item.status-cancelled .schedule-row::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background-color: #dc3545;
           }
 
           .schedule-row {
@@ -308,8 +330,12 @@ export default function StationSchedule() {
             font-size: 1.1rem;
             font-weight: 600;
             color: #000066;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
           }
-          .cancelled-text {
+
+          .cancelled-time {
             text-decoration: line-through;
             color: #dc143c !important;
           }
@@ -317,12 +343,26 @@ export default function StationSchedule() {
           .original-time {
             text-decoration: line-through;
             color: #666;
-            margin-right: 0.5rem;
-            font-size: 0.9rem;
+            font-size: 0.7rem;
+            margin-top: 2px;
           }
 
           .delayed-time {
             color: #fd7e14;
+            font-weight: 600;
+            font-size: 1rem;
+          }
+
+          .badge.bg-warning {
+            background-color: #fd7e14 !important;
+            color: white !important;
+          }
+
+          tr.cancelled .schedule-time,
+          tr.cancelled .schedule-destination,
+          tr.cancelled .schedule-train {
+            text-decoration: line-through;
+            color: #dc143c;
           }
 
           .schedule-destination {
@@ -440,20 +480,8 @@ export default function StationSchedule() {
             padding: 0.5rem 0;
           }
 
-          .station-row.status-cancelled {
-            position: relative;
-            color: #dc3545;
+          .station-row {
             opacity: 0.8;
-          }
-
-          .station-row.status-cancelled::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background-color: #dc3545;
           }
 
           .station-time {
@@ -462,6 +490,15 @@ export default function StationSchedule() {
             display: flex;
             flex-direction: column;
             justify-content: center;
+          }
+
+          .station-row > div {
+            transition: all 0.3s ease;
+          }
+
+          .station-row.status-cancelled > div {
+            text-decoration: line-through;
+            color: #dc143c;
           }
 
           .delayed-times {
@@ -479,8 +516,38 @@ export default function StationSchedule() {
           .delayed-original-time {
             text-decoration: line-through;
             color: #666;
-            font-size: 8px;
+            font-size: 0.7rem;
             margin-top: 2px;
+          }
+
+          .status-cancelled {
+            color: #dc3545;
+            opacity: 0.8;
+          }
+
+          .status-cancelled::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background-color: #dc3545;
+            z-index: 1;
+          }
+
+          .cancelled-time {
+            text-decoration: line-through;
+            color: #dc3545;
+          }
+
+          .badge.ms-2 {
+            margin-left: 0.5rem;
+          }
+
+          .badge.bg-warning {
+            background-color: #fd7e14 !important;
+            color: white !important;
           }
 
           .station-name {

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useContext, useState } from 'react';
-import { AuthContext } from '../pages/_app';
+import { AuthContext } from '../src/contexts/AuthContext';
 import { SettingsContext } from '../contexts/SettingsContext';
 import Image from 'next/image';
 
@@ -9,7 +9,7 @@ export default function Sidebar() {
   const router = useRouter();
   const currentPath = router.pathname;
   const { logout } = useContext(AuthContext);
-  const { companyName } = useContext(SettingsContext);
+  const { companyName, logoUrl, primaryColor } = useContext(SettingsContext);
   const [isAnnouncementMenuOpen, setAnnouncementMenuOpen] = useState(false);
 
   const handleLogout = (e) => {
@@ -27,7 +27,7 @@ export default function Sidebar() {
         <Link href="/admin" className="d-flex align-items-center p-3 text-decoration-none">
           <div className="sidebar-logo-container">
             <Image 
-              src="/images/sncf-logo.png" 
+              src={logoUrl || "/images/sncf-logo.png"}
               alt="SNCF Logo"
               width={100}
               height={28}
@@ -35,7 +35,7 @@ export default function Sidebar() {
               className="sidebar-logo"
             />
           </div>
-          <span className="ms-3 text-primary fw-bold">{companyName}</span>
+          <span className="ms-3 fw-bold" style={{ color: primaryColor }}>{companyName}</span>
         </Link>
       </div>
       
@@ -75,17 +75,20 @@ export default function Sidebar() {
               <span>Matériels Roulants</span>
             </Link>
             <Link 
-              href="/admin/billetique.js" 
+              href="/admin/billetique" 
               className={`sncf-nav-link ${currentPath === '/admin/billetique' ? 'active' : ''}`}
             >
-              <div><span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--primary-color)" width="24" aria-hidden="true" data-testid="icon-order" 
-              focusable="false" class="jsx-7fe9084330cc5140">
-                <path fill-rule="evenodd" d="M18.581 1.705l1.185 1.186c-.006.006-.015.006-.022.013-.143.143-.16.392-.015.534l2.258 2.265c.142.14.391.125.533-.018.008-.006.01-.014.014-.02l1.107 1.11c.479.478.479 1.251 0 1.73L8.492 23.643a1.221 1.221 0 0 1-1.73-.004l-5.06-5.066L18.58 1.705zM15.508.357a1.221 1.221 0 0 1 1.73.004l.118.115L.473 17.342l-.116-.116a1.227 1.227 0 0 1 0-1.732z" class="jsx-7fe9084330cc5140"></path>
-                </svg>
-                 </span> 
-                 
-              <span>Gestion de la Billetique</span>
+              <div className="d-flex align-items-center">
+                <span className="material-icons">confirmation_number</span>
+                <span>Gestion de la Billetique</span>
               </div>
+            </Link>
+            <Link
+              href="/admin/compositions-trains"
+              className={`sncf-nav-link ${currentPath === '/admin/compositions-trains' ? 'active' : ''}`}
+            >
+              <span className="material-icons">view_carousel</span>
+              <span>Compositions Trains</span>
             </Link>
           </div>
 
@@ -196,6 +199,87 @@ export default function Sidebar() {
           <span>Déconnexion</span>
         </button>
       </div>
+
+      <style jsx>{`
+        .sncf-sidebar {
+          width: 280px;
+          height: 100vh;
+          display: flex;
+          flex-direction: column;
+          position: sticky;
+          top: 0;
+        }
+
+        .sncf-sidebar-content {
+          flex: 1;
+          overflow-y: auto;
+          padding: 1rem;
+        }
+
+        .sncf-nav-section {
+          margin-bottom: 1.5rem;
+        }
+
+        .sncf-nav-section-title {
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          color: #6c757d;
+          margin-bottom: 0.5rem;
+          padding: 0 0.5rem;
+        }
+
+        .sncf-nav-link {
+          display: flex;
+          align-items: center;
+          padding: 0.75rem;
+          color: #495057;
+          text-decoration: none;
+          border-radius: 0.5rem;
+          margin-bottom: 0.25rem;
+          transition: all 0.2s;
+        }
+
+        .sncf-nav-link:hover {
+          background-color: ${primaryColor}15;
+          color: ${primaryColor};
+        }
+
+        .sncf-nav-link.active {
+          background-color: ${primaryColor}15;
+          color: ${primaryColor};
+          font-weight: 500;
+        }
+
+        .sncf-nav-link .material-icons {
+          margin-right: 0.75rem;
+          font-size: 1.25rem;
+        }
+
+        .sncf-nav-group-content {
+          padding-left: 1rem;
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.3s ease-out;
+        }
+
+        .sncf-nav-group.open .sncf-nav-group-content {
+          max-height: 500px;
+        }
+
+        .sncf-sidebar-footer {
+          padding: 1rem;
+          border-top: 1px solid #e9ecef;
+        }
+
+        .text-danger {
+          color: #dc3545;
+        }
+
+        .text-danger:hover {
+          background-color: #dc354520 !important;
+          color: #dc3545 !important;
+        }
+      `}</style>
     </nav>
   );
 }

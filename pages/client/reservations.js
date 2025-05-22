@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import Layout from '../../components/Layout';
-import { AuthContext } from '../_app';
+import { AuthContext } from '../../src/contexts/AuthContext';
 import QRCodeTicket from '../../components/QRCodeTicket.js';
 import { useRouter } from 'next/router';
 

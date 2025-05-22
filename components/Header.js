@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useContext } from 'react';
-import { AuthContext } from '../pages/_app';
+import { AuthContext } from '../src/contexts/AuthContext';
 import { SettingsContext } from '../contexts/SettingsContext';
 import styles from '../styles/operatorColors.module.css';
 
@@ -16,19 +16,19 @@ export default function Header() {
 
   const router = useRouter();
   const currentPath = router.pathname;
-  const { user } = useContext(AuthContext);
-  const {
-    logoUrl,
-    appName,
-  } = useContext(SettingsContext);
+  const auth = useContext(AuthContext) || {};
+  const { user } = auth;
+  const settings = useContext(SettingsContext) || {};
+  const { logoUrl, appName } = settings;
 
   return (
     <header className={`mastheader bg-white shadow-sm ${getThemeClass(logoUrl)}`} style={{ fontFamily: "'SNCF', Arial, sans-serif" }}>
+      <link rel="icon" href="../favicon.ico" />
       <div className="container-fluid">
         <div className="d-flex align-items-center py-2">
-          <Link href="/" className="me-4" aria-label={appName}>
+          <Link href="/" className="me-4" aria-label={appName || 'SNCF'}>
           <Image
-              src={logoUrl }
+              src={logoUrl || '/images/sncf-logo.png'}
               alt={appName || 'Logo'}
               width={300}
               height={84}

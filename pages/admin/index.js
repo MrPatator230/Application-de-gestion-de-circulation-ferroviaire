@@ -1,20 +1,39 @@
 import { useEffect, useContext, useState } from 'react';
 import { useRouter } from 'next/router';
-import { AuthContext } from '../_app';
+import Link from 'next/link';
+import Image from 'next/image';
+import { AuthContext } from '../../src/contexts/AuthContext';
+import { SettingsContext } from '../../contexts/SettingsContext';
 import Sidebar from '../../components/Sidebar';
 import MobileMenuToggle from '../../components/MobileMenuToggle';
 import DashboardWidget from '../../components/admin/DashboardWidget';
 import RecentStats from '../../components/admin/RecentStats';
 import ActivityFeed from '../../components/admin/ActivityFeed';
-
+import styles from '../../styles/operatorColors.module.css';
 
 export default function Admin() {
   const { isAuthenticated } = useContext(AuthContext);
+  const { 
+    logoUrl, 
+    appName, 
+    companyName,
+    primaryColor,
+    secondaryColor,
+    buttonStyle 
+  } = useContext(SettingsContext);
+
   const router = useRouter();
   const [stationCount, setStationCount] = useState(0);
   const [scheduleCount, setScheduleCount] = useState(0);
   const [onTimeRatio, setOnTimeRatio] = useState(null);
   const [activities, setActivities] = useState([]);
+
+  const getThemeClass = (logoUrl) => {
+    if (!logoUrl) return '';
+    const region = logoUrl.split('logo-ter-')[1]?.split('.')[0];
+    if (!region) return '';
+    return styles[`${region}Theme`];
+  };
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -104,65 +123,151 @@ export default function Admin() {
   ];
 
   return (
-    <div className="app-container">
-      <Sidebar />
-      <MobileMenuToggle />
-      
-      <main className="sncf-content">
-        <div className="d-flex align-items-center bg-white p-3 shadow-sm mb-4">
-          <h1 className="sncf-title mb-0">Dashboard Admin</h1>
-        </div>
+    <div className={`app-container ${getThemeClass(logoUrl)}`}>
+      <div className="d-flex">
+        <Sidebar />
+        
+        <main className="flex-grow-1 min-vh-100 bg-light">
+          {/* Header */}
+          <header className="bg-white shadow-sm mb-4 px-4 py-3">
+            <div className="d-flex justify-content-between align-items-center">
+              <div className="d-flex align-items-center">
+                <MobileMenuToggle />
+                <h1 className="h3 mb-0 ms-3">Tableau de bord</h1>
+              </div>
+              <div className="d-flex align-items-center">
+                <Image
+                  src={logoUrl || '/images/sncf-logo.png'}
+                  alt={appName || 'SNCF'}
+                  width={120}
+                  height={40}
+                  className="me-3"
+                />
+              </div>
+            </div>
+          </header>
 
-        <div className="container-fluid">
-          <div className="row g-4 mb-4">
-            <div className="col-xl-3 col-md-6">
-              <DashboardWidget
-                title="Nombre de gares"
-                value={stationCount}
-                icon="train"
-                color="primary"
-                onClick={() => router.push('/stations')}
-              />
+          {/* Main Content */}
+          <div className="container-fluid px-4">
+            {/* Quick Stats */}
+            <div className="row g-4 mb-4">
+              <div className="col-xl-3 col-md-6">
+                <div className="card border-0 shadow-sm h-100" style={{
+                  borderRadius: buttonStyle === 'rounded' ? '15px' : '4px'
+                }}>
+                  <div className="card-body">
+                    <DashboardWidget
+                      title="Nombre de gares"
+                      value={stationCount}
+                      icon="train"
+                      color={primaryColor}
+                      onClick={() => router.push('/stations')}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="col-xl-3 col-md-6">
+                <div className="card border-0 shadow-sm h-100" style={{
+                  borderRadius: buttonStyle === 'rounded' ? '15px' : '4px'
+                }}>
+                  <div className="card-body">
+                    <DashboardWidget
+                      title="Horaires créés"
+                      value={scheduleCount}
+                      icon="schedule"
+                      color={primaryColor}
+                      onClick={() => router.push('/admin/horaires')}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="col-xl-3 col-md-6">
+                <div className="card border-0 shadow-sm h-100" style={{
+                  borderRadius: buttonStyle === 'rounded' ? '15px' : '4px'
+                }}>
+                  <div className="card-body">
+                    <DashboardWidget
+                      title="Ratio de ponctualité"
+                      value={`${onTimeRatio || 0}%`}
+                      icon="verified"
+                      color={primaryColor}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="col-xl-3 col-md-6">
+                <div className="card border-0 shadow-sm h-100" style={{
+                  borderRadius: buttonStyle === 'rounded' ? '15px' : '4px'
+                }}>
+                  <div className="card-body">
+                    <DashboardWidget
+                      title="Système d'annonces"
+                      value="Accéder"
+                      icon="campaign"
+                      color={primaryColor}
+                      onClick={() => router.push('/admin/banque-de-sons')}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="col-xl-3 col-md-6">
-              <DashboardWidget
-                title="Horaires créés"
-                value={scheduleCount}
-                icon="schedule"
-                color="info"
-                onClick={() => router.push('/admin/horaires')}
-              />
-            </div>
-            <div className="col-xl-3 col-md-6">
-              <DashboardWidget
-                title="Ratio de ponctualité"
-                value={`${onTimeRatio || 0}%`}
-                icon="verified"
-                color="success"
-              />
-            </div>
-            <div className="col-xl-3 col-md-6">
-              <DashboardWidget
-                title="Système d'annonces"
-                value="Accéder"
-                icon="campaign"
-                color="warning"
-                onClick={() => router.push('/admin/banque-de-sons')}
-              />
+
+            {/* Stats and Activity Feed */}
+            <div className="row g-4">
+              <div className="col-lg-8">
+                <div className="card border-0 shadow-sm" style={{
+                  borderRadius: buttonStyle === 'rounded' ? '15px' : '4px'
+                }}>
+                  <div className="card-body">
+                    <RecentStats stats={stats} primaryColor={primaryColor} />
+                  </div>
+                </div>
+              </div>
+              <div className="col-lg-4">
+                <div className="card border-0 shadow-sm" style={{
+                  borderRadius: buttonStyle === 'rounded' ? '15px' : '4px'
+                }}>
+                  <div className="card-body">
+                    <ActivityFeed activities={activities} primaryColor={primaryColor} />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
+        </main>
+      </div>
 
-          <div className="row g-4">
-            <div className="col-lg-8">
-              <RecentStats stats={stats} />
-            </div>
-            <div className="col-lg-4">
-              <ActivityFeed activities={activities} />
-            </div>
-          </div>
-        </div>
-      </main>
-       
+      <style jsx>{`
+        .app-container {
+          min-height: 100vh;
+          background-color: #f8f9fa;
+        }
+        
+        .card {
+          transition: transform 0.2s;
+        }
+        
+        .card:hover {
+          transform: translateY(-5px);
+        }
+
+        :global(.nav-link) {
+          color: ${secondaryColor};
+        }
+
+        :global(.nav-link.active) {
+          color: ${primaryColor};
+        }
+
+        :global(.btn-primary) {
+          background-color: ${primaryColor};
+          border-color: ${primaryColor};
+        }
+
+        :global(.text-primary) {
+          color: ${primaryColor} !important;
+        }
+      `}</style>
     </div>
   );
 }

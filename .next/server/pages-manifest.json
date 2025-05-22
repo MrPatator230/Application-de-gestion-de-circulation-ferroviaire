@@ -2,9 +2,11 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/": "pages/index.js",
+  "/horaires-par-gare/[station]": "pages/horaires-par-gare/[station].js",
+  "/admin/gestion-horaires": "pages/admin/gestion-horaires.js",
   "/api/settings": "pages/api/settings.js",
   "/admin": "pages/admin.js",
-  "/admin/entreprise": "pages/admin/entreprise.js",
+  "/admin/horaires": "pages/admin/horaires.js",
+  "/offers": "pages/offers.js",
   "/login": "pages/login.js"
 }

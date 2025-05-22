@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { AuthContext } from '../_app';
+import { AuthContext } from '../../src/contexts/AuthContext';
 import { SettingsContext } from '../../contexts/SettingsContext';
 import Sidebar from '../../components/Sidebar';
 import buttonStyles from '../../styles/buttons.module.css';
