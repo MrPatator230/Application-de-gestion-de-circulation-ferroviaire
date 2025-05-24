@@ -118,7 +118,17 @@ export default function Sidebar() {
               <span>Infos Trafic</span>
             </Link>
 
+<<<<<<< HEAD
             
+=======
+            <Link 
+              href="/admin/attribution-voie" 
+              className={`sncf-nav-link ${currentPath === '/admin/attribution-voie' ? 'active' : ''}`}
+            >
+              <span className="material-icons">alt_route</span>
+              <span>Attribution Voie</span>
+            </Link>
+>>>>>>> parent of 280b066 (Suppressions de tous les fichiers pour le déploiement de la V1.0)
           </div>
 
           <div className="sncf-nav-section">

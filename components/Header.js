@@ -49,7 +49,11 @@ export default function Header() {
               className={`nav-link ${currentPath === '/verifier-horaires' ? 'active' : ''}`}
             >
               <span className="material-icons me-1">search</span>
+<<<<<<< HEAD
               Rechercher un horaire
+=======
+              Vérifier Horaires
+>>>>>>> parent of 280b066 (Suppressions de tous les fichiers pour le déploiement de la V1.0)
             </Link>
 
             <Link 
@@ -72,6 +76,7 @@ export default function Header() {
             >
               Horaires par gare
             </Link>
+<<<<<<< HEAD
 
             <Link 
               href="/verification-trajets" 
@@ -80,6 +85,8 @@ export default function Header() {
               Vérifier son horaire
             </Link>
 
+=======
+>>>>>>> parent of 280b066 (Suppressions de tous les fichiers pour le déploiement de la V1.0)
           </nav>
 
           <div className="d-flex align-items-center">
