@@ -4,6 +4,8 @@ import Head from 'next/head';
 import TrainVisualSlider from '../components/TrainVisualSlider';
 import { getAllSchedules, getDelayedTime } from '../utils/scheduleUtils';
 import { useTrackAssignments } from '../hooks/useTrackAssignments';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 export default function VerificationTrajets() {
   const router = useRouter();
@@ -193,9 +195,7 @@ export default function VerificationTrajets() {
 
   return (
     <>
-      <Head>
-        <title>Vérification des trajets | SNCF</title>
-      </Head>
+      <Header />
 
       <div className="mastheader">
         <div className="mastheader-logo d-none d-xl-block">
@@ -401,6 +401,7 @@ export default function VerificationTrajets() {
             )}
           </div>
         </div>
+        <Footer />
       </div>
 
       <style jsx>{`
